@@ -2,30 +2,12 @@
 
 declare(strict_types=1);
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => isset($_SERVER['HTTPS']),
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
+require_once __DIR__ . '/../services/Session.php';
 
-session_start();
+Session::start();
 
-require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__ . '/../models/Professor.php';
-require_once __DIR__ . '/../services/Auth.php';
+Session::destruir();
 
-$database = new Database();
-$db = $database->connect();
-
-$professorModel = new Professor($db);
-$auth = new Auth($professorModel);
-
-$auth->logout();
-
-header(
-    'Location: index.php'
-);
+header('Location: chat/');
 
 exit;

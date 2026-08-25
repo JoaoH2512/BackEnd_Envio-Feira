@@ -2,15 +2,9 @@
 
 declare(strict_types=1);
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => isset($_SERVER['HTTPS']),
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
+require_once __DIR__ . '/../services/Session.php';
 
-session_start();
+Session::start();
 
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../config/AdminConfig.php';
@@ -21,11 +15,7 @@ $db = $database->connect();
 
 $professorModel = new Professor($db);
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(
-        random_bytes(32)
-    );
-}
+$csrfToken = Session::csrfToken();
 
 $erro = '';
 $sucesso = '';
@@ -42,16 +32,12 @@ if (!isset($_SESSION['admin_autenticado'])) {
 
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
-    isset($_POST['acao']) &&
-    $_POST['acao'] === 'entrar_admin'
+    ($_POST['acao'] ?? '') === 'entrar_admin'
 ) {
 
-    $csrfToken = $_POST['csrf_token'] ?? '';
-
     if (
-        !hash_equals(
-            $_SESSION['csrf_token'],
-            $csrfToken
+        !Session::validarCsrf(
+            $_POST['csrf_token'] ?? ''
         )
     ) {
 
@@ -68,12 +54,11 @@ if (
             )
         ) {
 
-            session_regenerate_id(true);
+            Session::regenerar();
 
             $_SESSION['admin_autenticado'] = true;
 
             header('Location: admin.php');
-
             exit;
 
         } else {
@@ -91,23 +76,20 @@ if (
 
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
-    isset($_POST['acao']) &&
-    $_POST['acao'] === 'cadastrar_professor'
+    ($_POST['acao'] ?? '') === 'cadastrar_professor'
 ) {
 
-    if (!$_SESSION['admin_autenticado']) {
+    if (
+        empty($_SESSION['admin_autenticado'])
+    ) {
 
         header('Location: admin.php');
-
         exit;
     }
 
-    $csrfToken = $_POST['csrf_token'] ?? '';
-
     if (
-        !hash_equals(
-            $_SESSION['csrf_token'],
-            $csrfToken
+        !Session::validarCsrf(
+            $_POST['csrf_token'] ?? ''
         )
     ) {
 
@@ -138,25 +120,38 @@ if (
 
             $erro = 'Digite um e-mail válido.';
 
-        } elseif (strlen($nome) > 150) {
+        } elseif (
+            strlen($nome) > 150
+        ) {
 
             $erro = 'O nome é muito grande.';
 
-        } elseif (strlen($ra) > 30) {
+        } elseif (
+            strlen($ra) > 30
+        ) {
 
             $erro = 'O RA é muito grande.';
 
-        } elseif (strlen($senha) < 8) {
+        } elseif (
+            strlen($senha) < 8
+        ) {
 
-            $erro = 'A senha precisa ter pelo menos 8 caracteres.';
+            $erro =
+                'A senha precisa ter pelo menos 8 caracteres.';
 
-        } elseif ($professorModel->emailExiste($email)) {
+        } elseif (
+            $professorModel->emailExiste($email)
+        ) {
 
-            $erro = 'Este e-mail já está cadastrado.';
+            $erro =
+                'Este e-mail já está cadastrado.';
 
-        } elseif ($professorModel->raExiste($ra)) {
+        } elseif (
+            $professorModel->raExiste($ra)
+        ) {
 
-            $erro = 'Este RA já está cadastrado.';
+            $erro =
+                'Este RA já está cadastrado.';
 
         } else {
 
@@ -189,23 +184,20 @@ if (
 
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
-    isset($_POST['acao']) &&
-    $_POST['acao'] === 'excluir_professor'
+    ($_POST['acao'] ?? '') === 'excluir_professor'
 ) {
 
-    if (!$_SESSION['admin_autenticado']) {
+    if (
+        empty($_SESSION['admin_autenticado'])
+    ) {
 
         header('Location: admin.php');
-
         exit;
     }
 
-    $csrfToken = $_POST['csrf_token'] ?? '';
-
     if (
-        !hash_equals(
-            $_SESSION['csrf_token'],
-            $csrfToken
+        !Session::validarCsrf(
+            $_POST['csrf_token'] ?? ''
         )
     ) {
 
@@ -218,7 +210,10 @@ if (
             FILTER_VALIDATE_INT
         );
 
-        if ($id === false || $id <= 0) {
+        if (
+            $id === false ||
+            $id <= 0
+        ) {
 
             $erro = 'Professor inválido.';
 
@@ -240,15 +235,11 @@ if (
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| BUSCAR PROFESSORES
-|--------------------------------------------------------------------------
-*/
-
 $professores = [];
 
-if ($_SESSION['admin_autenticado']) {
+if (
+    !empty($_SESSION['admin_autenticado'])
+) {
 
     $professores =
         $professorModel->buscarTodos();
@@ -275,20 +266,22 @@ if ($_SESSION['admin_autenticado']) {
 
     <link
         rel="stylesheet"
-        href="css/admin.css"
+        href="css/style.css"
     >
 
 </head>
 
 <body>
 
-<?php if (!$_SESSION['admin_autenticado']): ?>
+<?php if (
+    empty($_SESSION['admin_autenticado'])
+): ?>
 
-    <main class="admin-login">
+    <main class="auth-page">
 
-        <section class="admin-login-card">
+        <section class="auth-card">
 
-            <div class="admin-icon">
+            <div class="auth-icon">
                 🔐
             </div>
 
@@ -302,7 +295,7 @@ if ($_SESSION['admin_autenticado']) {
 
             <?php if ($erro): ?>
 
-                <div class="alert error">
+                <div class="alert alert-error">
                     <?= htmlspecialchars(
                         $erro,
                         ENT_QUOTES,
@@ -324,26 +317,33 @@ if ($_SESSION['admin_autenticado']) {
                     type="hidden"
                     name="csrf_token"
                     value="<?= htmlspecialchars(
-                        $_SESSION['csrf_token'],
+                        $csrfToken,
                         ENT_QUOTES,
                         'UTF-8'
                     ) ?>"
                 >
 
-                <label for="codigo_secreto">
-                    Código secreto
-                </label>
+                <div class="form-group">
 
-                <input
-                    type="password"
-                    id="codigo_secreto"
-                    name="codigo_secreto"
-                    placeholder="Digite o código"
-                    autocomplete="off"
-                    required
+                    <label for="codigo_secreto">
+                        Código secreto
+                    </label>
+
+                    <input
+                        type="password"
+                        id="codigo_secreto"
+                        name="codigo_secreto"
+                        placeholder="Digite o código"
+                        autocomplete="off"
+                        required
+                    >
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="button button-primary button-full"
                 >
-
-                <button type="submit">
                     Acessar painel
                 </button>
 
@@ -355,13 +355,49 @@ if ($_SESSION['admin_autenticado']) {
 
 <?php else: ?>
 
-    <main class="admin-container">
+    <nav class="navbar">
 
-        <header class="admin-header">
+        <a
+            href="admin.php"
+            class="navbar-brand"
+        >
+            🎓 Sistema Escolar
+        </a>
+
+        <div class="navbar-links">
+
+            <a
+                href="admin.php"
+                class="nav-button active"
+            >
+                👨‍🏫 Professores
+            </a>
+
+            <a
+                href="admin-chat.php"
+                class="nav-button"
+            >
+                💬 Chat
+            </a>
+
+            <a
+                href="admin-logout.php"
+                class="nav-button nav-danger"
+            >
+                🚪 Sair
+            </a>
+
+        </div>
+
+    </nav>
+
+    <main class="page-container">
+
+        <header class="page-header">
 
             <div>
 
-                <span class="admin-label">
+                <span class="eyebrow">
                     PAINEL ADMINISTRATIVO
                 </span>
 
@@ -375,42 +411,43 @@ if ($_SESSION['admin_autenticado']) {
 
             </div>
 
-            <a
-                href="admin-logout.php"
-                class="logout"
-            >
-                Sair
-            </a>
+            <div class="admin-status">
+                🔐 ADM conectado
+            </div>
 
         </header>
 
         <?php if ($erro): ?>
 
-            <div class="alert error">
+            <div class="alert alert-error">
+
                 <?= htmlspecialchars(
                     $erro,
                     ENT_QUOTES,
                     'UTF-8'
                 ) ?>
+
             </div>
 
         <?php endif; ?>
 
         <?php if ($sucesso): ?>
 
-            <div class="alert success">
+            <div class="alert alert-success">
+
                 <?= htmlspecialchars(
                     $sucesso,
                     ENT_QUOTES,
                     'UTF-8'
                 ) ?>
+
             </div>
 
         <?php endif; ?>
 
         <section class="content-grid">
 
-            <div class="card">
+            <div class="content-card">
 
                 <div class="card-header">
 
@@ -436,7 +473,7 @@ if ($_SESSION['admin_autenticado']) {
                         type="hidden"
                         name="csrf_token"
                         value="<?= htmlspecialchars(
-                            $_SESSION['csrf_token'],
+                            $csrfToken,
                             ENT_QUOTES,
                             'UTF-8'
                         ) ?>"
@@ -513,7 +550,7 @@ if ($_SESSION['admin_autenticado']) {
 
                     <button
                         type="submit"
-                        class="primary-button"
+                        class="button button-primary button-full"
                     >
                         Cadastrar professor
                     </button>
@@ -522,7 +559,7 @@ if ($_SESSION['admin_autenticado']) {
 
             </div>
 
-            <div class="card">
+            <div class="content-card">
 
                 <div class="card-header">
 
@@ -537,13 +574,15 @@ if ($_SESSION['admin_autenticado']) {
 
                 </div>
 
-                <?php if (empty($professores)): ?>
+                <?php if (
+                    empty($professores)
+                ): ?>
 
-                    <div class="empty">
+                    <div class="empty-state">
 
-                        <span>
+                        <div class="empty-icon">
                             👨‍🏫
-                        </span>
+                        </div>
 
                         <p>
                             Nenhum professor cadastrado ainda.
@@ -555,30 +594,40 @@ if ($_SESSION['admin_autenticado']) {
 
                     <div class="professors-list">
 
-                        <?php foreach ($professores as $professor): ?>
+                        <?php foreach (
+                            $professores as $professor
+                        ): ?>
 
-                            <article class="professor">
+                            <article class="professor-item">
 
                                 <div class="professor-info">
 
                                     <div class="avatar">
-                                        <?= strtoupper(
-                                            substr(
-                                                $professor['nome'],
-                                                0,
-                                                1
-                                            )
+
+                                        <?= htmlspecialchars(
+                                            strtoupper(
+                                                substr(
+                                                    $professor['nome'],
+                                                    0,
+                                                    1
+                                                )
+                                            ),
+                                            ENT_QUOTES,
+                                            'UTF-8'
                                         ) ?>
+
                                     </div>
 
                                     <div>
 
                                         <h3>
+
                                             <?= htmlspecialchars(
                                                 $professor['nome'],
                                                 ENT_QUOTES,
                                                 'UTF-8'
                                             ) ?>
+
                                         </h3>
 
                                         <p>
@@ -627,7 +676,7 @@ if ($_SESSION['admin_autenticado']) {
                                         type="hidden"
                                         name="csrf_token"
                                         value="<?= htmlspecialchars(
-                                            $_SESSION['csrf_token'],
+                                            $csrfToken,
                                             ENT_QUOTES,
                                             'UTF-8'
                                         ) ?>"
@@ -635,7 +684,7 @@ if ($_SESSION['admin_autenticado']) {
 
                                     <button
                                         type="submit"
-                                        class="delete-button"
+                                        class="button button-danger"
                                     >
                                         Excluir
                                     </button>

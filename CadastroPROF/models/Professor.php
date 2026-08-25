@@ -6,13 +6,17 @@ class Professor
 {
     private PDO $db;
 
+
     public function __construct(PDO $db)
     {
         $this->db = $db;
     }
 
-    public function buscarPorEmail(string $email): ?array
-    {
+
+    public function buscarPorEmail(
+        string $email
+    ): ?array {
+
         $sql = "
             SELECT
                 id,
@@ -37,6 +41,36 @@ class Professor
         return $professor ?: null;
     }
 
+
+    public function buscarPorId(
+        int $id
+    ): ?array {
+
+        $sql = "
+            SELECT
+                id,
+                nome,
+                ra,
+                email,
+                ativo,
+                criado_em
+            FROM professores
+            WHERE id = :id
+            LIMIT 1
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            ':id' => $id
+        ]);
+
+        $professor = $stmt->fetch();
+
+        return $professor ?: null;
+    }
+
+
     public function buscarTodos(): array
     {
         $sql = "
@@ -52,10 +86,12 @@ class Professor
         ";
 
         $stmt = $this->db->prepare($sql);
+
         $stmt->execute();
 
         return $stmt->fetchAll();
     }
+
 
     public function criar(
         string $nome,
@@ -64,10 +100,11 @@ class Professor
         string $senha
     ): bool {
 
-        $senhaHash = password_hash(
-            $senha,
-            PASSWORD_DEFAULT
-        );
+        $senhaHash =
+            password_hash(
+                $senha,
+                PASSWORD_DEFAULT
+            );
 
         $sql = "
             INSERT INTO professores
@@ -96,8 +133,11 @@ class Professor
         ]);
     }
 
-    public function emailExiste(string $email): bool
-    {
+
+    public function emailExiste(
+        string $email
+    ): bool {
+
         $sql = "
             SELECT id
             FROM professores
@@ -114,8 +154,11 @@ class Professor
         return $stmt->fetch() !== false;
     }
 
-    public function raExiste(string $ra): bool
-    {
+
+    public function raExiste(
+        string $ra
+    ): bool {
+
         $sql = "
             SELECT id
             FROM professores
@@ -132,8 +175,11 @@ class Professor
         return $stmt->fetch() !== false;
     }
 
-    public function excluir(int $id): bool
-    {
+
+    public function excluir(
+        int $id
+    ): bool {
+
         $sql = "
             DELETE FROM professores
             WHERE id = :id

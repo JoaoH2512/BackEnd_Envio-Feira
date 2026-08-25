@@ -2,19 +2,13 @@
 
 declare(strict_types=1);
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => isset($_SERVER['HTTPS']),
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
+require_once __DIR__ . '/../services/Session.php';
 
-session_start();
+Session::start();
 
 unset($_SESSION['admin_autenticado']);
 
-session_regenerate_id(true);
+Session::regenerar();
 
 header('Location: admin.php');
 

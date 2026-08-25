@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/Session.php';
+
 class Auth
 {
     private Professor $professorModel;
@@ -27,10 +29,10 @@ class Auth
             return false;
         }
 
-        session_regenerate_id(true);
+        Session::regenerar();
 
         $_SESSION['professor'] = [
-            'id' => $professor['id'],
+            'id' => (int) $professor['id'],
             'nome' => $professor['nome'],
             'ra' => $professor['ra'],
             'email' => $professor['email']
@@ -41,23 +43,7 @@ class Auth
 
     public function logout(): void
     {
-        $_SESSION = [];
-
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-
-            setcookie(
-                session_name(),
-                '',
-                time() - 42000,
-                $params['path'],
-                $params['domain'],
-                $params['secure'],
-                $params['httponly']
-            );
-        }
-
-        session_destroy();
+        Session::destruir();
     }
 
     public function estaAutenticado(): bool

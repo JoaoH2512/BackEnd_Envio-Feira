@@ -2,15 +2,9 @@
 
 declare(strict_types=1);
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => isset($_SERVER['HTTPS']),
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
+require_once __DIR__ . '/../services/Session.php';
 
-session_start();
+Session::start();
 
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/Professor.php';
@@ -24,9 +18,11 @@ $professorModel = new Professor($db);
 
 $auth = new Auth($professorModel);
 
-if (!$auth->estaAutenticado()) {
+if (
+    !$auth->estaAutenticado()
+) {
 
-    header('Location: index.php');
+    header('Location: chat/');
 
     exit;
 }
@@ -49,7 +45,7 @@ $professor = $auth->professor();
     >
 
     <title>
-        Bem-vindo | Área do Professor
+        Dashboard | Sistema Escolar
     </title>
 
     <link
@@ -61,89 +57,143 @@ $professor = $auth->professor();
 
 <body>
 
-    <main class="login-container">
+<nav class="navbar">
 
-        <section class="login-card">
+    <a
+        href="dashboard.php"
+        class="navbar-brand"
+    >
+        🎓 Sistema Escolar
+    </a>
 
-            <div class="login-header">
+    <div class="navbar-links">
 
-                <div class="logo">
-                    ✓
-                </div>
+        <a
+            href="dashboard.php"
+            class="nav-button active"
+        >
+            🏠 Início
+        </a>
 
-                <h1>
-                    Bem-vindo!
-                </h1>
+        <a
+            href="chat.php"
+            class="nav-button"
+        >
+            💬 Suporte
+        </a>
 
-                <p>
-                    É bom ter você por aqui,
+        <div class="user-badge">
+
+            👤
+
+            <?= htmlspecialchars(
+                $professor['nome'],
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>
+
+            <span>
+                PROFESSOR
+            </span>
+
+        </div>
+
+        <a
+            href="logout.php"
+            class="nav-button nav-danger"
+        >
+            🚪 Sair
+        </a>
+
+    </div>
+
+</nav>
+
+<main class="page-container">
+
+    <section class="welcome-card">
+
+        <span class="eyebrow">
+            ÁREA DO PROFESSOR
+        </span>
+
+        <h1>
+            Bem-vindo,
+            <?= htmlspecialchars(
+                $professor['nome'],
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>!
+        </h1>
+
+        <p>
+            Você está conectado ao sistema.
+            Utilize o botão de suporte para falar
+            diretamente com a administração.
+        </p>
+
+        <div class="profile-grid">
+
+            <div class="profile-card">
+
+                <span>
+                    Nome
+                </span>
+
+                <strong>
                     <?= htmlspecialchars(
                         $professor['nome'],
                         ENT_QUOTES,
                         'UTF-8'
-                    ) ?>.
-                </p>
-
-            </div>
-
-            <div class="form-group">
-
-                <strong>
-                    Nome:
+                    ) ?>
                 </strong>
 
-                <br>
-
-                <?= htmlspecialchars(
-                    $professor['nome'],
-                    ENT_QUOTES,
-                    'UTF-8'
-                ) ?>
-
             </div>
 
-            <div class="form-group">
+            <div class="profile-card">
+
+                <span>
+                    RA
+                </span>
 
                 <strong>
-                    RA:
+                    <?= htmlspecialchars(
+                        $professor['ra'],
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </strong>
-
-                <br>
-
-                <?= htmlspecialchars(
-                    $professor['ra'],
-                    ENT_QUOTES,
-                    'UTF-8'
-                ) ?>
 
             </div>
 
-            <div class="form-group">
+            <div class="profile-card">
+
+                <span>
+                    E-mail
+                </span>
 
                 <strong>
-                    E-mail:
+                    <?= htmlspecialchars(
+                        $professor['email'],
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </strong>
-
-                <br>
-
-                <?= htmlspecialchars(
-                    $professor['email'],
-                    ENT_QUOTES,
-                    'UTF-8'
-                ) ?>
 
             </div>
 
-            <a
-                href="logout.php"
-                class="login-button"
-            >
-                Sair da conta
-            </a>
+        </div>
 
-        </section>
+        <a
+            href="chat.php"
+            class="button button-primary"
+        >
+            💬 Abrir suporte
+        </a>
 
-    </main>
+    </section>
+
+</main>
 
 </body>
 
