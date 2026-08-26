@@ -11,13 +11,13 @@
 
         <h2>Cadastrar professor</h2>
 
-        <form action="listar.php" method="POST">
+        <form action="processa_adicionar.php" method="POST">
 
             <label for="prof_nome">Nome do professor:</label>
             <input
                 type="text"
                 id="prof_nome"
-                name="prof_nome"
+                name="nome"
                 placeholder="Digite..."
                 required
             >
@@ -26,7 +26,7 @@
             <input
                 type="number"
                 id="prof_rm"
-                name="prof_rm"
+                name="rm"
                 placeholder="Digite..."
                 required
             >
@@ -35,7 +35,7 @@
             <input
                 type="email"
                 id="prof_email"
-                name="prof_email"
+                name="email"
                 placeholder="Digite..."
                 required
             >

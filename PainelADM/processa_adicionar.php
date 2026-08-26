@@ -1,5 +1,6 @@
 <?php
-require_once "conexao.php";
+require_once "../conexao.php";
+require_once 'adicionar.php';
 
     // Se o formulário for enviado
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
