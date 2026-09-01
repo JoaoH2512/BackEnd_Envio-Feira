@@ -1,6 +1,72 @@
 <?php
 
 session_start();
+require_once '../conexao.php';
+
+$erro = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $nome = $_POST['nome'] ?? '';
+    $email = trim($_POST['email'] ?? '');
+    $matricula    = trim($_POST['matricula'] ?? '');
+    $senha = $_POST['senha'] ?? '';
+    $tipo = $_POST['tipo'] ?? '';
+
+    /*
+    ----------------------------------------------
+    | BUSCA NO BANCO DE DADOS
+    ----------------------------------------------
+    */
+
+    $sql = "SELECT * FROM professor WHERE email = :email LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':email', $email);
+    $stmt->execute();
+
+    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    /*
+    ----------------------------------------------
+    | VALIDAÇÃO
+    ----------------------------------------------
+    */
+
+    if ($usuario) {
+        // Comparando RA e senha vindos do banco
+        if ($usuario['matricula'] == $matricula && $usuario['senha'] === $senha) {
+
+            // LOGIN CORRETO
+            session_start();
+            $_SESSION['usuario_id'] = $usuario['id'];
+            $_SESSION['usuario_nome'] = $usuario['nome'];
+
+            header('Location: ../PainelADM/listar.php');
+            exit;
+
+        } else {
+            $erro = 'RA ou senha incorretos!';
+        }
+    } else {
+        $erro = 'E-mail não encontrado!';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // banco_feira
 
@@ -10,63 +76,63 @@ session_start();
 |--------------------------------------------------------------------------
 */
 
-$emailCorreto = 'arthur.silva175@aluno.cps.sp.gov.br';
-$raCorreto    = '24407';
-$senhaCorreta = 'evex-IS-back';
+// $emailCorreto = 'arthur.silva175@aluno.cps.sp.gov.br';
+// $raCorreto    = '24407';
+// $senhaCorreta = 'evex-IS-back';
 
-$erro = '';
+// $erro = '';
 
-/*
-|--------------------------------------------------------------------------
-| LOGIN
-|--------------------------------------------------------------------------
-*/
+// /*
+// |--------------------------------------------------------------------------
+// | LOGIN
+// |--------------------------------------------------------------------------
+// */
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $email = trim($_POST['email'] ?? '');
-    $ra    = trim($_POST['ra'] ?? '');
-    $senha = $_POST['senha'] ?? '';
+//     $email = trim($_POST['email'] ?? '');
+//     $ra    = trim($_POST['ra'] ?? '');
+//     $senha = $_POST['senha'] ?? '';
 
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDAÇÃO
-    |--------------------------------------------------------------------------
-    */
+//     /*
+//     |--------------------------------------------------------------------------
+//     | VALIDAÇÃO
+//     |--------------------------------------------------------------------------
+//     */
 
-    if (
-        $email === $emailCorreto &&
-        $ra === $raCorreto &&
-        $senha === $senhaCorreta
-    ) {
+//     if (
+//         $email === $emailCorreto &&
+//         $ra === $raCorreto &&
+//         $senha === $senhaCorreta
+//     ) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOGIN CORRETO
-        |--------------------------------------------------------------------------
-        */
+//         /*
+//         |--------------------------------------------------------------------------
+//         | LOGIN CORRETO
+//         |--------------------------------------------------------------------------
+//         */
 
-        session_regenerate_id(true);
+//         session_regenerate_id(true);
 
-        $_SESSION['logado'] = true;
-        $_SESSION['nome']   = 'Arthur Silva';
-        $_SESSION['email']  = $email;
-        $_SESSION['ra']     = $ra;
+//         $_SESSION['logado'] = true;
+//         $_SESSION['nome']   = 'Arthur Silva';
+//         $_SESSION['email']  = $email;
+//         $_SESSION['ra']     = $ra;
 
-        header('Location: correto.php');
-        exit;
+//         header('Location: correto.php');
+//         exit;
 
-    } else {
+//     } else {
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOGIN INCORRETO
-        |--------------------------------------------------------------------------
-        */
+//         /*
+//         |--------------------------------------------------------------------------
+//         | LOGIN INCORRETO
+//         |--------------------------------------------------------------------------
+//         */
 
-        $erro = 'Os dados informados não conferem. Verifique seu e-mail, RA e senha.';
-    }
-}
+//         $erro = 'Os dados informados não conferem. Verifique seu e-mail, RA e senha.';
+//     }
+// }
 
 ?>
 
@@ -859,7 +925,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input
                             type="text"
                             id="ra"
-                            name="ra"
+                            name="matricula"
                             placeholder="Digite sua matrícula ou RA"
                             autocomplete="off"
                             required
