@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 class Session
@@ -13,13 +12,12 @@ class Session
         }
 
         session_name(self::SESSION_NAME);
-
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
             'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             'httponly' => true,
-            'samesite' => 'Lax'
+            'samesite' => 'Lax',
         ]);
 
         session_start();
@@ -30,9 +28,7 @@ class Session
         self::start();
 
         if (empty($_SESSION['csrf_token'])) {
-            $_SESSION['csrf_token'] = bin2hex(
-                random_bytes(32)
-            );
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
 
         return $_SESSION['csrf_token'];
@@ -42,35 +38,24 @@ class Session
     {
         self::start();
 
-        if (
-            empty($_SESSION['csrf_token']) ||
-            $token === ''
-        ) {
-            return false;
-        }
-
-        return hash_equals(
-            $_SESSION['csrf_token'],
-            $token
-        );
+        return !empty($_SESSION['csrf_token'])
+            && $token !== ''
+            && hash_equals($_SESSION['csrf_token'], $token);
     }
 
     public static function regenerar(): void
     {
         self::start();
-
         session_regenerate_id(true);
     }
 
     public static function destruir(): void
     {
         self::start();
-
         $_SESSION = [];
 
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
-
             setcookie(
                 session_name(),
                 '',

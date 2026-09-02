@@ -1,76 +1,47 @@
 <?php
-
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../services/Session.php';
-
 Session::start();
 
 require_once __DIR__ . '/../../config/Database.php';
 require_once __DIR__ . '/../../models/Chat.php';
 
-if (
-    empty($_SESSION['admin_autenticado']) &&
-    !isset($_SESSION['professor'])
-) {
-
+if (empty($_SESSION['admin_autenticado']) && !isset($_SESSION['professor']['id'])) {
     http_response_code(401);
-
-    echo json_encode([
-        'sucesso' => false,
-        'erro' => 'Não autenticado.'
-    ]);
-
+    echo json_encode(['sucesso' => false, 'erro' => 'Não autenticado.']);
     exit;
 }
 
-$conversaId =
-    filter_input(
-        INPUT_GET,
-        'conversa_id',
-        FILTER_VALIDATE_INT
-    );
+$conversaId = filter_input(INPUT_GET, 'conversa_id', FILTER_VALIDATE_INT);
 
-if (
-    !$conversaId ||
-    $conversaId <= 0
-) {
-
-    echo json_encode([
-        'sucesso' => false,
-        'erro' => 'Conversa inválida.'
-    ]);
-
+if (!$conversaId || $conversaId <= 0) {
+    http_response_code(400);
+    echo json_encode(['sucesso' => false, 'erro' => 'Conversa inválida.']);
     exit;
 }
 
-$database =
-    new Database();
+$db = (new Database())->connect();
+$chat = new Chat($db);
 
-$db =
-    $database->connect();
+if (empty($_SESSION['admin_autenticado'])) {
+    $professorId = (int) $_SESSION['professor']['id'];
 
-$chatModel =
-    new Chat($db);
+    if (!$chat->conversaPertenceAoProfessor($conversaId, $professorId)) {
+        http_response_code(403);
+        echo json_encode(['sucesso' => false, 'erro' => 'Acesso negado.']);
+        exit;
+    }
+}
 
-$mensagens =
-    $chatModel->buscarMensagens(
-        (int) $conversaId
-    );
+$mensagens = $chat->buscarMensagens((int) $conversaId);
 
-$destinatario =
-    !empty($_SESSION['admin_autenticado'])
-        ? 'admin'
-        : 'professor';
-
-$chatModel->marcarRecebidas(
-    (int) $conversaId,
-    $destinatario
-);
+$destinatario = !empty($_SESSION['admin_autenticado']) ? 'admin' : 'professor';
+$chat->marcarRecebidas((int) $conversaId, $destinatario);
 
 echo json_encode([
     'sucesso' => true,
-    'mensagens' => $mensagens
-]);
+    'mensagens' => $mensagens,
+], JSON_UNESCAPED_UNICODE);
