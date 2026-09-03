@@ -34,7 +34,7 @@ CREATE TABLE conversas (
 
     professor_id INT UNSIGNED NOT NULL,
 
-    criada_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_conversas_professor
         FOREIGN KEY (professor_id)
@@ -68,7 +68,7 @@ CREATE TABLE mensagens (
         'lida'
     ) NOT NULL DEFAULT 'enviada',
 
-    criada_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_mensagens_conversa
         FOREIGN KEY (conversa_id)

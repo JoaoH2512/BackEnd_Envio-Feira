@@ -33,6 +33,8 @@ class Professor
         
         if ($this->colunaExiste('ra')) {
             $campos[] = 'ra';
+        } elseif ($this->colunaExiste('matricula')) {
+            $campos[] = 'matricula AS ra';
         }
         
         $campos[] = 'email';
@@ -69,10 +71,11 @@ class Professor
 
     public function raExiste(string $ra): bool
     {
-        if (!$this->colunaExiste('ra')) {
+        $coluna = $this->colunaExiste('ra') ? 'ra' : ($this->colunaExiste('matricula') ? 'matricula' : null);
+        if ($coluna === null) {
             return false;
         }
-        $stmt = $this->db->prepare('SELECT 1 FROM professor WHERE ra = ? LIMIT 1');
+        $stmt = $this->db->prepare("SELECT 1 FROM professor WHERE {$coluna} = ? LIMIT 1");
         $stmt->execute([$ra]);
         return (bool) $stmt->fetchColumn();
     }
@@ -134,11 +137,12 @@ class Professor
 
     public function buscarPorRA(string $ra): ?array
     {
-        if (!$this->colunaExiste('ra')) {
+        $coluna = $this->colunaExiste('ra') ? 'ra' : ($this->colunaExiste('matricula') ? 'matricula' : null);
+        if ($coluna === null) {
             return null;
         }
 
-        $sql = "SELECT " . $this->getCamposSelect() . " FROM professor WHERE ra = ? LIMIT 1";
+        $sql = "SELECT " . $this->getCamposSelect() . " FROM professor WHERE {$coluna} = ? LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$ra]);
         $professor = $stmt->fetch();

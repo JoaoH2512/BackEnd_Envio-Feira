@@ -294,7 +294,7 @@ CREATE TABLE conversas (
 
     professor_id INT UNSIGNED NOT NULL,
 
-    criada_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE KEY unique_professor_conversa (professor_id),
 
@@ -328,7 +328,7 @@ CREATE TABLE mensagens (
         'lida'
     ) NOT NULL DEFAULT 'enviada',
 
-    criada_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_mensagens_conversa
         FOREIGN KEY (conversa_id)
@@ -336,7 +336,7 @@ CREATE TABLE mensagens (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
-    INDEX idx_mensagens_conversa (conversa_id),
+    INDEX idx_mensagens_conversa_data (conversa_id, criado_em, id),
     INDEX idx_mensagens_status (status),
     INDEX idx_mensagens_remetente (remetente_id)
 );
