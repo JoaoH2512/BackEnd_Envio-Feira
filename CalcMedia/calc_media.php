@@ -21,4 +21,3 @@ if ($nota_final >= 0 && $nota_final <= 2.49) {
     echo "Erro ao calcular nota";
 }
 ?>
-
