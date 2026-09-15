@@ -1,243 +1,891 @@
-```php
 <?php
+
 session_start();
 
-/*
-|--------------------------------------------------------------------------
-| PROTEÇÃO DE ACESSO - SOMENTE PROFESSORES
-|--------------------------------------------------------------------------
-| Verifica se o usuário está logado e se seu tipo é "professor".
-| Caso contrário, será redirecionado para o login.
-|--------------------------------------------------------------------------
-*/
-if (!isset($_SESSION['id']) || !isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'avaliador') {
+require_once '../conexao.php';
+
+
+// ==========================================================
+// FUNÇÕES AUXILIARES
+// ==========================================================
+
+function e($valor)
+{
+    return htmlspecialchars(
+        (string) ($valor ?? ''),
+        ENT_QUOTES,
+        'UTF-8'
+    );
+}
+
+
+function formatarNota($valor, $casas = 0)
+{
+    $valor = (float) ($valor ?? 0);
+
+    return number_format(
+        $valor,
+        $casas,
+        ',',
+        '.'
+    );
+}
+
+
+function conceito($media)
+{
+    $media = (float) $media;
+
+    if ($media <= 4) {
+        return 'I';
+    }
+
+    if ($media <= 6) {
+        return 'R';
+    }
+
+    if ($media <= 8) {
+        return 'B';
+    }
+
+    return 'MB';
+}
+
+
+function notaCriterio($avaliacao, $idCriterio)
+{
+    if (!is_array($avaliacao)) {
+        return 0;
+    }
+
+    $campo = 'criterio_' . (int) $idCriterio;
+
+    if (isset($avaliacao[$campo])) {
+        return (int) $avaliacao[$campo];
+    }
+
+    return 0;
+}
+
+
+function icone($nome)
+{
+    $icones = [
+
+        'bell' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+        ',
+
+        'book' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+        ',
+
+        'clock' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <circle cx="12" cy="12" r="9"></circle>
+                <polyline points="12 7 12 12 15 14"></polyline>
+            </svg>
+        ',
+
+        'check' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        ',
+
+        'chart' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+        ',
+
+        'eye' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        ',
+
+        'edit' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+            </svg>
+        ',
+
+        'save' => '
+            <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+        '
+    ];
+
+    return $icones[$nome] ?? '';
+}
+
+
+// ==========================================================
+// VARIÁVEIS INICIAIS
+// ==========================================================
+
+$mensagem = '';
+
+
+// ==========================================================
+// VERIFICAÇÃO DE ACESSO
+// ==========================================================
+
+if (
+    !isset($_SESSION['usuario_id']) ||
+    !isset($_SESSION['tipo']) ||
+    $_SESSION['tipo'] !== 'avaliador'
+) {
     header('Location: ../login/login.php');
     exit;
 }
 
 
-// O sistema começa sempre sem avaliações. Depois do primeiro acesso, os dados salvos são preservados.
-if (!isset($_SESSION['estado_inicial_zerado'])) {
-    $_SESSION['avaliacoes'] = [];
-    $_SESSION['estado_inicial_zerado'] = true;
+// ==========================================================
+// ID DO AVALIADOR LOGADO
+// ==========================================================
+
+$avaliadorId = (int) $_SESSION['usuario_id'];
+
+
+// ==========================================================
+// BUSCAR CRITÉRIOS
+// TABELA: criterio
+// ==========================================================
+
+$sqlCriterios = "
+    SELECT
+        id,
+        nome
+    FROM criterio
+    ORDER BY id ASC
+";
+
+$stmtCriterios = $pdo->prepare($sqlCriterios);
+$stmtCriterios->execute();
+
+$criteriosBanco = $stmtCriterios->fetchAll(PDO::FETCH_ASSOC);
+
+
+// ==========================================================
+// BUSCAR PROJETOS
+// TABELA: projeto
+// ==========================================================
+
+$sqlProjetos = "
+    SELECT
+        id,
+        nome,
+        descricao,
+        periodo,
+        orientador_id,
+        status,
+        ods,
+        links,
+        senha_acesso,
+        id_aluno,
+        nota,
+        criado_em
+    FROM projeto
+    ORDER BY id ASC
+";
+
+$stmtProjetos = $pdo->prepare($sqlProjetos);
+$stmtProjetos->execute();
+
+$projetosBanco = $stmtProjetos->fetchAll(PDO::FETCH_ASSOC);
+
+
+// ==========================================================
+// ORGANIZAR PROJETOS
+// ==========================================================
+
+$projetos = [];
+
+foreach ($projetosBanco as $projeto) {
+
+    $idProjeto = (int) $projeto['id'];
+
+    $projetos[$idProjeto] = [
+
+        'id' => $idProjeto,
+
+        'nome' => $projeto['nome'] ?? '',
+
+        'descricao' => $projeto['descricao'] ?? '',
+
+        'periodo' => $projeto['periodo'] ?? '',
+
+        'orientador_id' => $projeto['orientador_id'] ?? '',
+
+        'status_banco' => $projeto['status'] ?? '',
+
+        'status' => 'Pendente',
+
+        'ods' => $projeto['ods'] ?? '',
+
+        'links' => $projeto['links'] ?? '',
+
+        'senha_acesso' => $projeto['senha_acesso'] ?? '',
+
+        'id_aluno' => $projeto['id_aluno'] ?? '',
+
+        'nota' => $projeto['nota'] ?? null,
+
+        'criado_em' => $projeto['criado_em'] ?? ''
+    ];
 }
 
-$projetosBase = [
-    1 => [
-        'nome' => 'Farm Bot',
-        'curso' => 'Informática para Internet',
-        'turma' => '3º',
-        'estande' => 'A-01',
-        'status' => 'Pendente',
-        'descricao' => 'Sistema automatizado para acompanhamento e irrigação inteligente de pequenas plantações.',
-        'equipe' => 'Mariana Costa, Pedro Alves e João Mendes',
-        'orientador' => 'Laura Martins',
-    ],
-    2 => [
-        'nome' => 'Eco Filter',
-        'curso' => 'Recursos Humanos',
-        'turma' => '2º',
-        'estande' => 'B-03',
-        'status' => 'Pendente',
-        'descricao' => 'Solução sustentável para reaproveitamento de água e redução do desperdício na escola.',
-        'equipe' => 'Beatriz Lima, Rafael Santos e Ana Clara',
-        'orientador' => 'Laura Martins',
-    ],
-    3 => [
-        'nome' => 'ReciclaLú',
-        'curso' => 'Informática para Internet',
-        'turma' => '3º',
-        'estande' => 'B-12',
-        'status' => 'Pendente',
-        'descricao' => 'Aplicativo para triagem inteligente de resíduos e comunicação de alertas para a comunidade escolar.',
-        'equipe' => 'João Pedro, Larissa Freitas e Raquel Souza',
-        'orientador' => 'Ana Beatriz Silva',
-    ],
-    4 => [
-        'nome' => 'Edu+',
-        'curso' => 'Administração',
-        'turma' => '2º',
-        'estande' => 'C-02',
-        'status' => 'Pendente',
-        'descricao' => 'Plataforma de apoio aos estudos com trilhas personalizadas para estudantes.',
-        'equipe' => 'Lucas Oliveira, Camila Rocha e Victor Hugo',
-        'orientador' => 'Laura Martins',
-    ],
-    5 => [
-        'nome' => 'Smart Horta',
-        'curso' => 'Informática para Internet',
-        'turma' => '3º',
-        'estande' => 'A-02',
-        'status' => 'Pendente',
-        'descricao' => 'Horta conectada com sensores de umidade e painel de acompanhamento em tempo real.',
-        'equipe' => 'Gabriel Souza, Helena Dias e Felipe Nunes',
-        'orientador' => 'Laura Martins',
-    ],
-    6 => [
-        'nome' => 'Energia Solar',
-        'curso' => 'Química',
-        'turma' => '2º',
-        'estande' => 'B-01',
-        'status' => 'Pendente',
-        'descricao' => 'Protótipo de baixo custo para captação de energia solar em espaços escolares.',
-        'equipe' => 'Isabela Martins, Caio Mendes e Sofia Reis',
-        'orientador' => 'Laura Martins',
-    ],
-];
 
-// Não existem avaliações fictícias: o professor preenche cada projeto manualmente.
+// ==========================================================
+// BUSCAR AVALIAÇÕES DO BANCO
+// TABELA: avaliacao
+// ==========================================================
 
-$pagina = $_GET['pagina'] ?? 'painel';
-$modoVisualizacao = ($_GET['modo'] ?? '') === 'visualizar';
-$projetoId = (int)($_GET['projeto'] ?? 3);
+$avaliacoesBanco = [];
 
-if (!isset($projetosBase[$projetoId])) {
-    $projetoId = 3;
-}
+$sqlAvaliacoes = "
+    SELECT
+        id,
+        avaliador_id,
+        projeto_id,
+        criterio_id,
+        nota,
+        status,
+        observacao
+    FROM avaliacao
+    WHERE avaliador_id = ?
+    ORDER BY projeto_id ASC, criterio_id ASC
+";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_avaliacao'])) {
-    $projetoId = (int)($_POST['projeto_id'] ?? 3);
+$stmtAvaliacoes = $pdo->prepare($sqlAvaliacoes);
+$stmtAvaliacoes->execute([
+    $avaliadorId
+]);
 
-    if (isset($projetosBase[$projetoId])) {
-        $_SESSION['avaliacoes'][$projetoId] = [
-            'inovacao' => max(0, min(10, (int)round((float)($_POST['inovacao'] ?? 0)))),
-            'viabilidade' => max(0, min(10, (int)round((float)($_POST['viabilidade'] ?? 0)))),
-            'impacto' => max(0, min(10, (int)round((float)($_POST['impacto'] ?? 0)))),
-            'apresentacao' => max(0, min(10, (int)round((float)($_POST['apresentacao'] ?? 0)))),
-            'comentarios' => trim($_POST['comentarios'] ?? ''),
+$avaliacoesResultado =
+    $stmtAvaliacoes->fetchAll(PDO::FETCH_ASSOC);
+
+
+// ==========================================================
+// ORGANIZAR AVALIAÇÕES
+// ==========================================================
+
+foreach ($avaliacoesResultado as $avaliacao) {
+
+    $idProjeto =
+        (int) $avaliacao['projeto_id'];
+
+    $idCriterio =
+        (int) $avaliacao['criterio_id'];
+
+
+    if (!isset($avaliacoesBanco[$idProjeto])) {
+
+        $avaliacoesBanco[$idProjeto] = [
+            'criterios' => [],
+            'observacao' => '',
+            'status' => $avaliacao['status'] ?? 'Avaliado'
         ];
-
-        $_SESSION['mensagem'] = 'Avaliação salva com sucesso.';
     }
 
-    header('Location: ?pagina=painel');
-    exit;
+
+    $campo =
+        'criterio_' . $idCriterio;
+
+
+    $avaliacoesBanco[$idProjeto]['criterios'][$campo] =
+        (int) $avaliacao['nota'];
+
+
+    if (
+        isset($avaliacao['observacao']) &&
+        $avaliacao['observacao'] !== ''
+    ) {
+
+        $avaliacoesBanco[$idProjeto]['observacao'] =
+            $avaliacao['observacao'];
+    }
+
+
+    if (
+        isset($projetos[$idProjeto])
+    ) {
+
+        $projetos[$idProjeto]['status'] =
+            'Avaliado';
+    }
 }
 
-$projetos = $projetosBase;
 
-foreach ($projetos as $id => &$projeto) {
-    if (isset($_SESSION['avaliacoes'][$id])) {
-        $projeto['status'] = 'Avaliado';
+// ==========================================================
+// PÁGINA E MODO
+// ==========================================================
+
+$pagina =
+    $_GET['pagina'] ?? 'painel';
+
+$modo =
+    $_GET['modo'] ?? '';
+
+$modoVisualizacao =
+    $pagina === 'avaliar' &&
+    $modo === 'visualizar';
+
+
+// ==========================================================
+// PROJETO SELECIONADO
+// ==========================================================
+
+$projetoId =
+    (int) ($_GET['projeto'] ?? 0);
+
+
+if (
+    $projetoId === 0 &&
+    !empty($projetos)
+) {
+
+    $projetoId =
+        array_key_first($projetos);
+}
+
+
+if (
+    $projetoId !== 0 &&
+    !isset($projetos[$projetoId])
+) {
+
+    if (!empty($projetos)) {
+
+        $projetoId =
+            array_key_first($projetos);
+
+    } else {
+
+        $projetoId = 0;
+    }
+}
+
+
+// ==========================================================
+// PROJETO ATUAL
+// ==========================================================
+
+$projetoAtual = null;
+
+if (
+    $projetoId > 0 &&
+    isset($projetos[$projetoId])
+) {
+
+    $projetoAtual =
+        $projetos[$projetoId];
+}
+
+
+// ==========================================================
+// AVALIAÇÃO ATUAL
+// ==========================================================
+
+$avaliacaoAtual = [
+
+    'criterios' => [],
+
+    'observacao' => '',
+
+    'status' => 'Pendente'
+];
+
+
+if (
+    $projetoId > 0 &&
+    isset(
+        $avaliacoesBanco[$projetoId]
+    )
+) {
+
+    $avaliacaoAtual =
+        $avaliacoesBanco[$projetoId];
+}
+
+
+// ==========================================================
+// SALVAR AVALIAÇÃO NO BANCO
+// ==========================================================
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['salvar_avaliacao'])
+) {
+
+    $idProjeto =
+        (int) ($_POST['projeto_id'] ?? 0);
+
+
+    // ======================================================
+    // VERIFICAR PROJETO
+    // ======================================================
+
+    if (
+        $idProjeto <= 0 ||
+        !isset($projetos[$idProjeto])
+    ) {
+
+        $mensagem =
+            'Projeto inválido.';
+
+    } elseif (empty($criteriosBanco)) {
+
+        $mensagem =
+            'Nenhum critério de avaliação está cadastrado.';
+
+    } else {
+
+
+        try {
+
+            // ==================================================
+            // INICIAR TRANSAÇÃO
+            // ==================================================
+
+            $pdo->beginTransaction();
+
+
+            // ==================================================
+            // EXCLUIR A AVALIAÇÃO ANTERIOR
+            // DO MESMO AVALIADOR E PROJETO
+            // ==================================================
+
+            $sqlExcluir = "
+                DELETE FROM avaliacao
+                WHERE avaliador_id = ?
+                AND projeto_id = ?
+            ";
+
+            $stmtExcluir =
+                $pdo->prepare($sqlExcluir);
+
+            $stmtExcluir->execute([
+                $avaliadorId,
+                $idProjeto
+            ]);
+
+
+            // ==================================================
+            // INSERIR NOVAS AVALIAÇÕES
+            // ==================================================
+
+            $sqlInserir = "
+                INSERT INTO avaliacao
+                (
+                    avaliador_id,
+                    projeto_id,
+                    criterio_id,
+                    nota,
+                    status,
+                    observacao
+                )
+                VALUES
+                (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
+            ";
+
+            $stmtInserir =
+                $pdo->prepare($sqlInserir);
+
+
+            $observacao =
+                trim(
+                    $_POST['comentarios'] ?? ''
+                );
+
+
+            foreach ($criteriosBanco as $criterio) {
+
+                $idCriterio =
+                    (int) $criterio['id'];
+
+
+                $campo =
+                    'criterio_' . $idCriterio;
+
+
+                $notaCriterio =
+                    isset($_POST[$campo])
+                        ? (int) $_POST[$campo]
+                        : 0;
+
+
+                $notaCriterio =
+                    max(
+                        0,
+                        min(
+                            10,
+                            $notaCriterio
+                        )
+                    );
+
+
+                $stmtInserir->execute([
+
+                    $avaliadorId,
+
+                    $idProjeto,
+
+                    $idCriterio,
+
+                    $notaCriterio,
+
+                    'Avaliado',
+
+                    $observacao
+                ]);
+            }
+
+
+            // ==================================================
+            // CONFIRMAR TRANSAÇÃO
+            // ==================================================
+
+            $pdo->commit();
+
+
+            // ==================================================
+            // REDIRECIONAR
+            // ==================================================
+
+            header(
+                'Location: ?pagina=avaliar&projeto=' .
+                $idProjeto .
+                '&modo=visualizar&sucesso=1'
+            );
+
+            exit;
+
+
+        } catch (PDOException $erro) {
+
+
+            // ==================================================
+            // DESFAZER EM CASO DE ERRO
+            // ==================================================
+
+            if ($pdo->inTransaction()) {
+
+                $pdo->rollBack();
+            }
+
+
+            $mensagem =
+                'Erro ao salvar a avaliação: ' .
+                $erro->getMessage();
+        }
+    }
+}
+
+
+// ==========================================================
+// MENSAGEM DE SUCESSO
+// ==========================================================
+
+if (
+    isset($_GET['sucesso']) &&
+    $_GET['sucesso'] === '1'
+) {
+
+    $mensagem =
+        'Avaliação salva com sucesso!';
+}
+
+
+// ==========================================================
+// MÉDIA DA AVALIAÇÃO ATUAL
+// ==========================================================
+
+$mediaAtual = 0;
+
+if (!empty($criteriosBanco)) {
+
+    $somaNotas = 0;
+
+    $quantidadeNotas = 0;
+
+
+    foreach ($criteriosBanco as $criterio) {
+
+        $notaCriterioAtual =
+            notaCriterio(
+                $avaliacaoAtual['criterios'],
+                $criterio['id']
+            );
+
+
+        $somaNotas +=
+            $notaCriterioAtual;
+
+
+        $quantidadeNotas++;
+    }
+
+
+    if ($quantidadeNotas > 0) {
+
+        $mediaAtual =
+            $somaNotas /
+            $quantidadeNotas;
+    }
+}
+
+
+// ==========================================================
+// CONCEITO ATUAL
+// ==========================================================
+
+$conceitoAtual =
+    conceito($mediaAtual);
+
+
+// ==========================================================
+// CONTADORES DO PAINEL
+// ==========================================================
+
+$totalProjetos =
+    count($projetos);
+
+$pendentes = 0;
+
+$concluidas = 0;
+
+
+foreach ($projetos as $idProjeto => &$projeto) {
+
+    if (
+        isset(
+            $avaliacoesBanco[$idProjeto]
+        )
+    ) {
+
+        $projeto['status'] =
+            'Avaliado';
+
+        $concluidas++;
+
+    } else {
+
+        $projeto['status'] =
+            'Pendente';
+
+        $pendentes++;
     }
 }
 
 unset($projeto);
 
-foreach ($_SESSION['avaliacoes'] as &$avaliacaoSalva) {
-    foreach (['inovacao', 'viabilidade', 'impacto', 'apresentacao'] as $campoNota) {
-        $avaliacaoSalva[$campoNota] = max(
-            0,
-            min(
-                10,
-                (int)round((float)($avaliacaoSalva[$campoNota] ?? 0))
-            )
-        );
+
+// ==========================================================
+// MÉDIA GERAL
+// ==========================================================
+
+$somaMedias = 0;
+
+$quantidadeMedias = 0;
+
+
+foreach (
+    $avaliacoesBanco
+    as $idProjeto => $avaliacao
+) {
+
+    if (
+        !isset($projetos[$idProjeto])
+    ) {
+
+        continue;
+    }
+
+
+    if (
+        empty($avaliacao['criterios'])
+    ) {
+
+        continue;
+    }
+
+
+    $somaProjeto = 0;
+
+    $quantidadeProjeto = 0;
+
+
+    foreach (
+        $avaliacao['criterios']
+        as $nota
+    ) {
+
+        $somaProjeto +=
+            (float) $nota;
+
+        $quantidadeProjeto++;
+    }
+
+
+    if ($quantidadeProjeto > 0) {
+
+        $mediaProjeto =
+            $somaProjeto /
+            $quantidadeProjeto;
+
+
+        $somaMedias +=
+            $mediaProjeto;
+
+
+        $quantidadeMedias++;
     }
 }
 
-unset($avaliacaoSalva);
 
-$avaliacoes = $_SESSION['avaliacoes'];
-$pendentes = count($projetos) - count($avaliacoes);
-$concluidas = count($avaliacoes);
+if ($quantidadeMedias > 0) {
 
-$mediaGeral = 0;
-$quantidadeNotas = 0;
+    $mediaGeral =
+        $somaMedias /
+        $quantidadeMedias;
 
-foreach ($avaliacoes as $avaliacao) {
-    $mediaGeral += (
-        $avaliacao['inovacao'] +
-        $avaliacao['viabilidade'] +
-        $avaliacao['impacto'] +
-        $avaliacao['apresentacao']
-    ) / 4;
+} else {
 
-    $quantidadeNotas++;
+    $mediaGeral = 0;
 }
 
-$mediaGeral = $quantidadeNotas ? $mediaGeral / $quantidadeNotas : 0;
-$conceitoGeral = conceito($mediaGeral);
 
-$avaliacaoAtual = $avaliacoes[$projetoId] ?? [
-    'inovacao' => 0,
-    'viabilidade' => 0,
-    'impacto' => 0,
-    'apresentacao' => 0,
-    'comentarios' => ''
-];
+// ==========================================================
+// CONCEITO GERAL
+// ==========================================================
 
-$mediaAtual = (
-    $avaliacaoAtual['inovacao'] +
-    $avaliacaoAtual['viabilidade'] +
-    $avaliacaoAtual['impacto'] +
-    $avaliacaoAtual['apresentacao']
-) / 4;
+$conceitoGeral =
+    conceito($mediaGeral);
 
-$conceitoAtual = conceito($mediaAtual);
-$projetoAtual = $projetos[$projetoId];
-
-$mensagem = $_SESSION['mensagem'] ?? '';
-unset($_SESSION['mensagem']);
-
-function e($valor): string
-{
-    return htmlspecialchars((string)$valor, ENT_QUOTES, 'UTF-8');
-}
-
-function nota($valor, int $casas = 0): string
-{
-    return number_format((float)$valor, $casas, ',', '');
-}
-
-function conceito($media): string
-{
-    $media = (float)$media;
-
-    if ($media <= 4) return 'I';
-    if ($media <= 6) return 'R';
-    if ($media <= 8) return 'B';
-
-    return 'MB';
-}
-
-function icone(string $nome): string
-{
-    $icons = [
-        'bell' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>',
-
-        'eye' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
-
-        'edit' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16.5-.7 3.7 3.7-.7L18.3 8.2a2.1 2.1 0 0 0-3-3L4 16.5Z"/><path d="m13.8 6.2 3 3"/></svg>',
-
-        'book' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5v-17Z"/><path d="M5 4.5v17M8 6h8M8 10h8"/></svg>',
-
-        'check' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>',
-
-        'clock' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-
-        'chart' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
-
-        'save' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l2 2v16H5V3Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>',
-    ];
-
-    return $icons[$nome] ?? '';
-}
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>
-        <?php echo $pagina === 'avaliar' ? 'Avaliar projeto' : 'Painel do professor'; ?>
+
+        <?php
+        echo $pagina === 'avaliar'
+            ? 'Avaliar projeto'
+            : 'Painel do professor';
+        ?>
+
         | EcoSense
+
     </title>
 
+
     <style>
+
         :root {
             --vinho: #760b20;
             --vinho-escuro: #5f0819;
@@ -919,6 +1567,7 @@ function icone(string $nome): string
         }
 
         @media (max-width: 900px) {
+
             .cards {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -933,6 +1582,7 @@ function icone(string $nome): string
         }
 
         @media (max-width: 620px) {
+
             .container {
                 width: calc(100% - 28px);
             }
@@ -962,779 +1612,1475 @@ function icone(string $nome): string
                 top: 29px;
             }
         }
+
+
+.btn-avaliar {
+    width: auto !important;
+    min-width: 100px;
+    height: 42px !important;
+
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 0 16px !important;
+
+    box-sizing: border-box;
+
+    border-radius: 10px;
+
+    background: #16E28A;
+    color: #0A2540;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    overflow: visible !important;
+
+    transition: all 0.2s ease;
+}
+
+.btn-avaliar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(22, 226, 138, 0.3);
+}
+
+.btn-avaliar svg {
+    width: 17px !important;
+    height: 17px !important;
+    flex-shrink: 0;
+}
     </style>
+
 </head>
+
 
 <body>
 
-    <header class="topo">
-        <div class="container">
 
-            <?php if ($pagina === 'avaliar'): ?>
+<header class="topo">
 
-                <a class="voltar" href="?pagina=painel">
-                    <span>‹</span> Voltar
-                </a>
+    <div class="container">
 
-                <span class="label">Avaliações gerais</span>
+        <?php if ($pagina === 'avaliar'): ?>
 
-                <h1>EcoSense</h1>
+            <a
+                class="voltar"
+                href="?pagina=painel"
+            >
+                <span>‹</span>
+                Voltar
+            </a>
 
-                <p class="subtitulo">
-                    Revise as informações para concluir a avaliação do projeto.
-                </p>
 
-            <?php else: ?>
+            <span class="label">
+                Avaliações gerais
+            </span>
 
-                <span class="label">Painel do professor</span>
 
-                <h1>Bem-vindo! Professor(a) Laura</h1>
+            <h1>
+                EcoSense
+            </h1>
 
-                <p class="subtitulo">
-                    Confira o panorama dos projetos sob sua orientação.
-                </p>
 
-            <?php endif; ?>
-
-            <div class="notificacao">
-                <?php echo icone('bell'); ?>
-            </div>
-
-        </div>
-    </header>
-
-
-    <main class="container">
-
-        <?php if ($pagina === 'avaliar' && $modoVisualizacao): ?>
-
-            <section class="card painel visualizacao">
-
-                <div class="projeto-cabecalho">
-
-                    <div class="projeto-icone">
-                        <?php echo icone('eye'); ?>
-                    </div>
-
-                    <div>
-                        <div class="projeto-titulo">
-                            Visualizar: <?php echo e($projetoAtual['nome']); ?>
-                        </div>
-
-                        <div class="projeto-meta">
-                            Estande <?php echo e($projetoAtual['estande']); ?>
-                            · Equipe: <?php echo e($projetoAtual['equipe']); ?>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="bloco">
-
-                    <h3>Descrição do projeto</h3>
-
-                    <p>
-                        <?php echo e($projetoAtual['descricao']); ?>
-                    </p>
-
-                </div>
-
-                <div class="bloco">
-
-                    <h3>Notas da avaliação</h3>
-
-                    <?php
-                    $criteriosVisualizacao = [
-                        'inovacao' => 'Inovação e originalidade',
-                        'viabilidade' => 'Viabilidade técnica',
-                        'impacto' => 'Impacto e sustentabilidade',
-                        'apresentacao' => 'Apresentação e domínio do tema',
-                    ];
-
-                    foreach ($criteriosVisualizacao as $campo => $nomeVisualizacao):
-                    ?>
-
-                        <div class="nota-visual">
-
-                            <span>
-                                <?php echo e($nomeVisualizacao); ?>
-                            </span>
-
-                            <strong>
-                                <?php echo nota($avaliacaoAtual[$campo]); ?> / 10
-                            </strong>
-
-                        </div>
-
-                    <?php endforeach; ?>
-
-                    <div class="nota-final">
-
-                        <span>
-                            Média final: <?php echo nota($mediaAtual, 1); ?>
-                        </span>
-
-                        <strong>
-                            Conceito <?php echo e($conceitoAtual); ?>
-                        </strong>
-
-                    </div>
-
-                </div>
-
-                <div class="botoes">
-
-                    <a
-                        class="botao principal"
-                        href="?pagina=avaliar&projeto=<?php echo $projetoId; ?>"
-                    >
-                        <?php echo icone('edit'); ?>
-
-                        <span style="vertical-align:2px; margin-left:4px;">
-                            Corrigir
-                        </span>
-                    </a>
-
-                    <a class="botao" href="?pagina=painel">
-                        Voltar
-                    </a>
-
-                </div>
-
-            </section>
-
-
-        <?php elseif ($pagina === 'avaliar'): ?>
-
-            <div class="avaliacao-layout">
-
-                <section class="card painel">
-
-                    <div class="projeto-cabecalho">
-
-                        <div class="projeto-icone">
-                            <?php echo icone('book'); ?>
-                        </div>
-
-                        <div>
-
-                            <div class="projeto-titulo">
-                                Avaliar: <?php echo e($projetoAtual['nome']); ?>
-                            </div>
-
-                            <div class="projeto-meta">
-                                Estande <?php echo e($projetoAtual['estande']); ?>
-                                · Equipe: <?php echo e($projetoAtual['equipe']); ?>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="bloco">
-
-                        <h3>Descrição do projeto</h3>
-
-                        <p>
-                            <?php echo e($projetoAtual['descricao']); ?>
-                        </p>
-
-                    </div>
-
-
-                    <div class="bloco">
-
-                        <h3>Critérios de avaliação</h3>
-
-                        <?php
-
-                        $criterios = [
-                            'inovacao' => [
-                                'Inovação e originalidade',
-                                'Analise a criatividade da solução e o diferencial apresentado.'
-                            ],
-
-                            'viabilidade' => [
-                                'Viabilidade técnica',
-                                'Considere a execução, os recursos utilizados e o funcionamento do protótipo.'
-                            ],
-
-                            'impacto' => [
-                                'Impacto e sustentabilidade',
-                                'Avalie o potencial de impacto social, ambiental ou educacional.'
-                            ],
-
-                            'apresentacao' => [
-                                'Apresentação e domínio do tema',
-                                'Observe a comunicação da equipe e o domínio dos conteúdos apresentados.'
-                            ],
-                        ];
-
-                        foreach ($criterios as $campo => [$nome, $ajuda]):
-
-                            $valor = (float)$avaliacaoAtual[$campo];
-                            $percentual = ($valor / 10) * 100;
-
-                        ?>
-
-                            <div class="criterio">
-
-                                <div class="criterio-topo">
-
-                                    <span class="criterio-nome">
-                                        <?php echo e($nome); ?>
-                                    </span>
-
-                                    <span class="criterio-nota">
-
-                                        <output id="texto-<?php echo $campo; ?>">
-                                            <?php echo nota($valor); ?>
-                                        </output>
-
-                                        / 10
-
-                                    </span>
-
-                                </div>
-
-
-                                <div class="criterio-ajuda">
-                                    <?php echo e($ajuda); ?>
-                                </div>
-
-
-                                <div class="controle-nota">
-
-                                    <input
-                                        type="range"
-                                        name="<?php echo $campo; ?>"
-                                        form="form-avaliacao"
-                                        min="0"
-                                        max="10"
-                                        step="1"
-                                        value="<?php echo e($valor); ?>"
-                                        style="--valor:<?php echo $percentual; ?>%"
-                                        oninput="atualizarNota(
-                                            this,
-                                            'texto-<?php echo $campo; ?>',
-                                            'numero-<?php echo $campo; ?>'
-                                        )"
-                                    >
-
-                                    <input
-                                        class="campo-nota"
-                                        id="numero-<?php echo $campo; ?>"
-                                        type="number"
-                                        min="0"
-                                        max="10"
-                                        step="1"
-                                        value="<?php echo e($valor); ?>"
-                                        oninput="atualizarSlider(
-                                            this,
-                                            '<?php echo $campo; ?>'
-                                        )"
-                                    >
-
-                                </div>
-
-                            </div>
-
-                        <?php endforeach; ?>
-
-                    </div>
-
-
-                    <form
-                        id="form-avaliacao"
-                        method="post"
-                        action="?pagina=avaliar&projeto=<?php echo $projetoId; ?>"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="projeto_id"
-                            value="<?php echo $projetoId; ?>"
-                        >
-
-
-                        <div class="bloco">
-
-                            <h3>Comentários do avaliador</h3>
-
-                            <textarea
-                                name="comentarios"
-                                placeholder="Escreva um comentário sobre o projeto..."
-                            ><?php echo e($avaliacaoAtual['comentarios']); ?></textarea>
-
-                        </div>
-
-
-                        <div class="botoes">
-
-                            <button
-                                class="botao principal"
-                                type="submit"
-                                name="salvar_avaliacao"
-                            >
-
-                                <?php echo icone('save'); ?>
-
-                                <span style="vertical-align:2px; margin-left:4px;">
-                                    Salvar avaliação
-                                </span>
-
-                            </button>
-
-
-                            <a class="botao" href="?pagina=painel">
-                                Cancelar
-                            </a>
-
-                        </div>
-
-                    </form>
-
-                </section>
-
-
-                <aside class="lateral">
-
-                    <div class="card">
-
-                        <h3>Professor orientador</h3>
-
-                        <div class="orientador">
-
-                            <div class="avatar"></div>
-
-                            <div>
-
-                                <strong>
-                                    <?php echo e($projetoAtual['orientador']); ?>
-                                </strong>
-
-                                <small>
-                                    Orientadora responsável
-                                </small>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="card">
-
-                        <h3>Foto do projeto</h3>
-
-                        <div
-                            class="ilustracao"
-                            role="img"
-                            aria-label="Ilustração de um sensor em um projeto sustentável"
-                        >
-
-                            <div class="sol"></div>
-
-                            <div class="sol-pequeno"></div>
-
-                            <div class="vaso">
-
-                                <div class="sensor"></div>
-
-                            </div>
-
-                            <div class="folha f1"></div>
-                            <div class="folha f2"></div>
-                            <div class="folha f3"></div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="card resumo-avaliacao">
-
-                        <h3>Resumo da avaliação</h3>
-
-                        <dl>
-
-                            <dt>Período</dt>
-                            <dd>Manhã</dd>
-
-                            <dt>Turma</dt>
-                            <dd>1º DS A</dd>
-
-                            <dt>Série</dt>
-                            <dd>Série 1</dd>
-
-                            <dt>Nota</dt>
-                            <dd id="nota-resumo">
-                                <?php echo nota($mediaAtual, 1); ?>
-                            </dd>
-
-                            <dt>Conceito</dt>
-                            <dd id="conceito-resumo">
-                                <?php echo $conceitoAtual; ?>
-                            </dd>
-
-                            <dt>Avaliado em</dt>
-                            <dd>
-                                <?php echo date('d/m/Y'); ?>
-                            </dd>
-
-                        </dl>
-
-                    </div>
-
-                </aside>
-
-            </div>
+            <p class="subtitulo">
+                Revise as informações para concluir a avaliação do projeto.
+            </p>
 
 
         <?php else: ?>
 
-            <?php if ($mensagem): ?>
+            <span class="label">
+                Painel do professor
+            </span>
 
-                <div class="mensagem">
-                    <?php echo e($mensagem); ?>
+
+            <h1>
+                Bem-vindo! Professor(a)
+                <?php echo e($_SESSION['usuario_nome']); ?>
+            </h1>
+
+
+            <p class="subtitulo">
+                Confira o panorama dos projetos sob sua orientação.
+            </p>
+
+        <?php endif; ?>
+
+
+        <div class="notificacao">
+            <?php echo icone('bell'); ?>
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+
+<?php if ($mensagem): ?>
+
+    <div class="mensagem">
+
+        <?php echo e($mensagem); ?>
+
+    </div>
+
+<?php endif; ?>
+
+
+<?php if ($pagina === 'avaliar' && $projetoAtual === null): ?>
+
+
+    <div class="mensagem">
+
+        Nenhum projeto foi encontrado no banco de dados.
+
+    </div>
+
+
+<?php elseif ($pagina === 'avaliar' && $modoVisualizacao): ?>
+
+
+    <section class="card painel">
+
+
+        <div class="projeto-cabecalho">
+
+            <div class="projeto-icone">
+
+                <?php echo icone('eye'); ?>
+
+            </div>
+
+
+            <div>
+
+                <div class="projeto-titulo">
+
+                    Visualizar:
+                    <?php echo e($projetoAtual['nome']); ?>
+
                 </div>
+
+
+                <div class="projeto-meta">
+
+                    Período:
+                    <?php echo e($projetoAtual['periodo']); ?>
+
+                    · Aluno:
+                    <?php echo e($projetoAtual['id_aluno']); ?>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="bloco">
+
+            <h3>
+                Descrição do projeto
+            </h3>
+
+
+            <p>
+                <?php
+                echo e(
+                    $projetoAtual['descricao']
+                );
+                ?>
+            </p>
+
+        </div>
+
+
+        <div class="bloco">
+
+            <h3>
+                Notas da avaliação
+            </h3>
+
+
+            <?php if (!empty($criteriosBanco)): ?>
+
+
+                <?php foreach ($criteriosBanco as $criterio): ?>
+
+
+                    <?php
+
+                    $notaVisual =
+                        notaCriterio(
+                            $avaliacaoAtual['criterios'],
+                            $criterio['id']
+                        );
+
+                    ?>
+
+
+                    <div class="nota-visual">
+
+                        <span>
+
+                            <?php
+                            echo e(
+                                $criterio['nome']
+                            );
+                            ?>
+
+                        </span>
+
+
+                        <strong>
+
+                            <?php
+                            echo formatarNota(
+                                $notaVisual
+                            );
+                            ?>
+
+                            / 10
+
+                        </strong>
+
+                    </div>
+
+
+                <?php endforeach; ?>
+
+
+            <?php else: ?>
+
+
+                <p>
+                    Nenhum critério de avaliação cadastrado.
+                </p>
+
 
             <?php endif; ?>
 
 
-            <section class="cards">
+            <div class="nota-final">
 
-                <div class="card resumo">
+                <span>
 
-                    <div class="resumo-titulo">
-                        Projetos orientados
-                    </div>
+                    Média final:
+                    <?php
+                    echo formatarNota(
+                        $mediaAtual,
+                        1
+                    );
+                    ?>
 
-                    <div class="resumo-numero">
-                        <?php echo count($projetos); ?>
-                    </div>
-
-                    <div class="resumo-rodape">
-                        <?php echo count($projetos); ?> projetos ativos
-                    </div>
-
-                    <span class="resumo-icone">
-                        <?php echo icone('book'); ?>
-                    </span>
-
-                </div>
+                </span>
 
 
-                <div class="card resumo dourado">
+                <strong>
 
-                    <div class="resumo-titulo">
-                        Avaliações pendentes
-                    </div>
+                    Conceito
+                    <?php
+                    echo e(
+                        $conceitoAtual
+                    );
+                    ?>
 
-                    <div class="resumo-numero">
-                        <?php echo $pendentes; ?>
-                    </div>
-
-                    <div class="resumo-rodape">
-                        <?php echo $pendentes; ?> aguardando
-                    </div>
-
-                    <span class="resumo-icone">
-                        <?php echo icone('clock'); ?>
-                    </span>
-
-                </div>
-
-
-                <div class="card resumo azul">
-
-                    <div class="resumo-titulo">
-                        Avaliações concluídas
-                    </div>
-
-                    <div class="resumo-numero">
-                        <?php echo $concluidas; ?>
-                    </div>
-
-                    <div class="resumo-rodape">
-                        <?php echo $concluidas; ?> este mês
-                    </div>
-
-                    <span class="resumo-icone">
-                        <?php echo icone('check'); ?>
-                    </span>
-
-                </div>
-
-
-                <div class="card resumo verde">
-
-                    <div class="resumo-titulo">
-                        Média das notas finais
-                    </div>
-
-                    <div class="resumo-numero">
-                        <?php echo nota($mediaGeral, 2); ?>
-                    </div>
-
-                    <div class="resumo-rodape">
-                        Conceito geral: <?php echo $conceitoGeral; ?>
-                    </div>
-
-                    <span class="resumo-icone">
-                        <?php echo icone('chart'); ?>
-                    </span>
-
-                </div>
-
-            </section>
-
-
-            <div class="secao-cabecalho">
-
-                <h2>
-                    Projetos Orientados
-                </h2>
-
-                <a class="ver-todos" href="?pagina=painel">
-                    Ver todos
-                </a>
+                </strong>
 
             </div>
 
 
-            <div class="tabela-wrap">
+        </div>
 
-                <table>
 
-                    <thead>
+        <div class="botoes">
+
+
+            <a
+                class="botao principal"
+                href="?pagina=avaliar&projeto=<?php echo $projetoId; ?>"
+            >
+
+                <?php echo icone('edit'); ?>
+
+
+                <span
+                    style="vertical-align:2px; margin-left:4px;"
+                >
+                    Corrigir
+                </span>
+
+            </a>
+
+
+            <a
+                class="botao"
+                href="?pagina=painel"
+            >
+                Voltar
+            </a>
+
+
+        </div>
+
+
+    </section>
+
+
+<?php elseif ($pagina === 'avaliar'): ?>
+
+
+    <div class="avaliacao-layout">
+
+
+        <section class="card painel">
+
+
+            <div class="projeto-cabecalho">
+
+
+                <div class="projeto-icone">
+
+                    <?php echo icone('book'); ?>
+
+                </div>
+
+
+                <div>
+
+
+                    <div class="projeto-titulo">
+
+                        Avaliar:
+                        <?php echo e($projetoAtual['nome']); ?>
+
+                    </div>
+
+
+                    <div class="projeto-meta">
+
+                        Período:
+                        <?php echo e($projetoAtual['periodo']); ?>
+
+                        · Aluno:
+                        <?php echo e($projetoAtual['id_aluno']); ?>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <div class="bloco">
+
+
+                <h3>
+                    Descrição do projeto
+                </h3>
+
+
+                <p>
+
+                    <?php
+                    echo e(
+                        $projetoAtual['descricao']
+                    );
+                    ?>
+
+                </p>
+
+
+            </div>
+
+
+            <div class="bloco">
+
+
+                <h3>
+                    Critérios de avaliação
+                </h3>
+
+
+                <?php if (!empty($criteriosBanco)): ?>
+
+
+                    <?php foreach ($criteriosBanco as $criterio): ?>
+
+
+                        <?php
+
+                        $idCriterio =
+                            (int) $criterio['id'];
+
+
+                        $campo =
+                            'criterio_' .
+                            $idCriterio;
+
+
+                        $valor =
+                            isset(
+                                $avaliacaoAtual['criterios'][$campo]
+                            )
+                                ? (int)
+                                    $avaliacaoAtual['criterios'][$campo]
+                                : 0;
+
+
+                        $percentual =
+                            ($valor / 10) * 100;
+
+                        ?>
+
+
+                        <div class="criterio">
+
+
+                            <div class="criterio-topo">
+
+
+                                <span class="criterio-nome">
+
+                                    <?php
+                                    echo e(
+                                        $criterio['nome']
+                                    );
+                                    ?>
+
+                                </span>
+
+
+                                <span class="criterio-nota">
+
+
+                                    <output
+                                        id="texto-<?php echo $campo; ?>"
+                                    >
+
+                                        <?php
+                                        echo formatarNota(
+                                            $valor
+                                        );
+                                        ?>
+
+                                    </output>
+
+
+                                    / 10
+
+
+                                </span>
+
+
+                            </div>
+
+
+                            <div class="criterio-ajuda">
+
+                                Avalie este critério de 0 a 10.
+
+                            </div>
+
+
+                            <div class="controle-nota">
+
+
+                                <input
+                                    type="range"
+                                    name="<?php echo $campo; ?>"
+                                    form="form-avaliacao"
+                                    min="0"
+                                    max="10"
+                                    step="1"
+                                    value="<?php echo $valor; ?>"
+                                    style="--valor:<?php echo $percentual; ?>%"
+                                    oninput="atualizarNota(
+                                        this,
+                                        'texto-<?php echo $campo; ?>',
+                                        'numero-<?php echo $campo; ?>'
+                                    )"
+                                >
+
+
+                                <input
+                                    class="campo-nota"
+                                    id="numero-<?php echo $campo; ?>"
+                                    type="number"
+                                    min="0"
+                                    max="10"
+                                    step="1"
+                                    value="<?php echo $valor; ?>"
+                                    oninput="atualizarSlider(
+                                        this,
+                                        '<?php echo $campo; ?>'
+                                    )"
+                                >
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    <?php endforeach; ?>
+
+
+                <?php else: ?>
+
+
+                    <p>
+                        Nenhum critério cadastrado.
+                    </p>
+
+
+                <?php endif; ?>
+
+
+            </div>
+
+
+            <form
+                id="form-avaliacao"
+                method="post"
+                action="?pagina=avaliar&projeto=<?php echo $projetoId; ?>"
+            >
+
+
+                <input
+                    type="hidden"
+                    name="projeto_id"
+                    value="<?php echo $projetoId; ?>"
+                >
+
+
+                <div class="bloco">
+
+
+                    <h3>
+                        Comentários do avaliador
+                    </h3>
+
+
+                    <textarea
+                        name="comentarios"
+                        placeholder="Escreva um comentário sobre o projeto..."
+                    ><?php
+                    echo e(
+                        $avaliacaoAtual['observacao'] ?? ''
+                    );
+                    ?></textarea>
+
+
+                </div>
+
+
+                <div class="botoes">
+
+
+                    <button
+                        class="botao principal"
+                        type="submit"
+                        name="salvar_avaliacao"
+                    >
+
+                        <?php echo icone('save'); ?>
+
+
+                        <span
+                            style="vertical-align:2px; margin-left:4px;"
+                        >
+                            Salvar avaliação
+                        </span>
+
+
+                    </button>
+
+
+                    <a
+                        class="botao"
+                        href="?pagina=painel"
+                    >
+                        Cancelar
+                    </a>
+
+
+                </div>
+
+
+            </form>
+
+
+        </section>
+
+
+        <aside class="lateral">
+
+
+            <div class="card">
+
+
+                <h3>
+                    Professor orientador
+                </h3>
+
+
+                <div class="orientador">
+
+
+                    <div class="avatar"></div>
+
+
+                    <div>
+
+
+                        <strong>
+
+                            Orientador ID:
+                            <?php
+                            echo e(
+                                $projetoAtual['orientador_id']
+                            );
+                            ?>
+
+                        </strong>
+
+
+                        <small>
+                            Orientador responsável
+                        </small>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <div class="card">
+
+
+                <h3>
+                    Foto do projeto
+                </h3>
+
+
+                <div
+                    class="ilustracao"
+                    role="img"
+                    aria-label="Ilustração de um sensor em um projeto sustentável"
+                >
+
+
+                    <div class="sol"></div>
+
+                    <div class="sol-pequeno"></div>
+
+
+                    <div class="vaso">
+
+                        <div class="sensor"></div>
+
+                    </div>
+
+
+                    <div class="folha f1"></div>
+
+                    <div class="folha f2"></div>
+
+                    <div class="folha f3"></div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <div class="card resumo-avaliacao">
+
+
+                <h3>
+                    Resumo da avaliação
+                </h3>
+
+
+                <dl>
+
+
+                    <dt>
+                        Período
+                    </dt>
+
+
+                    <dd>
+
+                        <?php
+                        echo e(
+                            $projetoAtual['periodo']
+                        );
+                        ?>
+
+                    </dd>
+
+
+                    <dt>
+                        Aluno
+                    </dt>
+
+
+                    <dd>
+
+                        <?php
+                        echo e(
+                            $projetoAtual['id_aluno']
+                        );
+                        ?>
+
+                    </dd>
+
+
+                    <dt>
+                        ODS
+                    </dt>
+
+
+                    <dd>
+
+                        <?php
+                        echo e(
+                            $projetoAtual['ods']
+                        );
+                        ?>
+
+                    </dd>
+
+
+                    <dt>
+                        Nota
+                    </dt>
+
+
+                    <dd id="nota-resumo">
+
+                        <?php
+                        echo formatarNota(
+                            $mediaAtual,
+                            1
+                        );
+                        ?>
+
+                    </dd>
+
+
+                    <dt>
+                        Conceito
+                    </dt>
+
+
+                    <dd id="conceito-resumo">
+
+                        <?php
+                        echo e(
+                            $conceitoAtual
+                        );
+                        ?>
+
+                    </dd>
+
+
+                    <dt>
+                        Avaliado em
+                    </dt>
+
+
+                    <dd>
+
+                        <?php
+                        echo date('d/m/Y');
+                        ?>
+
+                    </dd>
+
+
+                </dl>
+
+
+            </div>
+
+
+        </aside>
+
+
+    </div>
+
+
+<?php else: ?>
+
+
+    <section class="cards">
+
+
+        <div class="card resumo">
+
+
+            <div class="resumo-titulo">
+                Projetos orientados
+            </div>
+
+
+            <div class="resumo-numero">
+
+                <?php
+                echo $totalProjetos;
+                ?>
+
+            </div>
+
+
+            <div class="resumo-rodape">
+
+                <?php
+                echo $totalProjetos;
+                ?>
+                projetos ativos
+
+            </div>
+
+
+            <span class="resumo-icone">
+
+                <?php
+                echo icone('book');
+                ?>
+
+            </span>
+
+
+        </div>
+
+
+        <div class="card resumo dourado">
+
+
+            <div class="resumo-titulo">
+                Avaliações pendentes
+            </div>
+
+
+            <div class="resumo-numero">
+
+                <?php
+                echo $pendentes;
+                ?>
+
+            </div>
+
+
+            <div class="resumo-rodape">
+
+                <?php
+                echo $pendentes;
+                ?>
+                aguardando
+
+            </div>
+
+
+            <span class="resumo-icone">
+
+                <?php
+                echo icone('clock');
+                ?>
+
+            </span>
+
+
+        </div>
+
+
+        <div class="card resumo azul">
+
+
+            <div class="resumo-titulo">
+                Avaliações concluídas
+            </div>
+
+
+            <div class="resumo-numero">
+
+                <?php
+                echo $concluidas;
+                ?>
+
+            </div>
+
+
+            <div class="resumo-rodape">
+
+                <?php
+                echo $concluidas;
+                ?>
+                este mês
+
+            </div>
+
+
+            <span class="resumo-icone">
+
+                <?php
+                echo icone('check');
+                ?>
+
+            </span>
+
+
+        </div>
+
+
+        <div class="card resumo verde">
+
+
+            <div class="resumo-titulo">
+                Média das notas finais
+            </div>
+
+
+            <div class="resumo-numero">
+
+                <?php
+                echo formatarNota(
+                    $mediaGeral,
+                    1
+                );
+                ?>
+
+            </div>
+
+
+            <div class="resumo-rodape">
+
+                Conceito geral:
+
+                <?php
+                echo e(
+                    $conceitoGeral
+                );
+                ?>
+
+            </div>
+
+
+            <span class="resumo-icone">
+
+                <?php
+                echo icone('chart');
+                ?>
+
+            </span>
+
+
+        </div>
+
+
+    </section>
+
+
+    <div class="secao-cabecalho">
+
+
+        <h2>
+            Projetos Orientados
+        </h2>
+
+
+        <a
+            class="ver-todos"
+            href="?pagina=painel"
+        >
+            Ver todos
+        </a>
+
+
+    </div>
+
+
+    <div class="tabela-wrap">
+
+
+        <table>
+
+
+            <thead>
+
+
+                <tr>
+
+                    <th>
+                        Projeto
+                    </th>
+
+                    <th>
+                        Período
+                    </th>
+
+                    <th>
+                        Aluno
+                    </th>
+
+                    <th>
+                        Orientador
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Visualização
+                    </th>
+
+                    <th>
+                        Edição
+                    </th>
+
+                </tr>
+
+
+            </thead>
+
+
+            <tbody>
+
+
+                <?php if (!empty($projetos)): ?>
+
+
+                    <?php foreach ($projetos as $id => $projeto): ?>
+
 
                         <tr>
-                            <th>Projeto</th>
-                            <th>Curso</th>
-                            <th>Turma</th>
-                            <th>Estande</th>
-                            <th>Status</th>
-                            <th>Visualização</th>
-                            <th>Edição</th>
+
+
+                            <td>
+
+                                <strong>
+
+                                    <?php
+                                    echo e(
+                                        $projeto['nome']
+                                    );
+                                    ?>
+
+                                </strong>
+
+                            </td>
+
+
+                            <td>
+
+                                <?php
+                                echo e(
+                                    $projeto['periodo']
+                                );
+                                ?>
+
+                            </td>
+
+
+                            <td>
+
+                                <?php
+                                echo e(
+                                    $projeto['id_aluno']
+                                );
+                                ?>
+
+                            </td>
+
+
+                            <td>
+
+                                <?php
+                                echo e(
+                                    $projeto['orientador_id']
+                                );
+                                ?>
+
+                            </td>
+
+
+                            <td>
+
+
+                                <span
+                                    class="status <?php
+
+                                    echo $projeto['status'] === 'Avaliado'
+                                        ? 'ok'
+                                        : 'pendente';
+
+                                    ?>"
+                                >
+
+                                    <?php
+                                    echo e(
+                                        $projeto['status']
+                                    );
+                                    ?>
+
+                                </span>
+
+
+                            </td>
+
+
+                            <td>
+
+
+                                <a
+                                    class="acao"
+                                    title="Visualizar avaliação"
+                                    href="?pagina=avaliar&modo=visualizar&projeto=<?php echo $id; ?>"
+                                >
+
+                                    <?php
+                                    echo icone('eye');
+                                    ?>
+
+                                </a>
+
+
+                            </td>
+
+
+                            <td>
+
+
+                                <a
+                                    class="acao btn-avaliar"
+                                    title="Avaliar projeto"
+                                    href="?pagina=avaliar&projeto=<?php echo $id; ?>"
+                                >
+                                    <?php echo icone('edit'); ?>
+                                    <span>Avaliar</span>
+                                </a>
+
+
+                            </td>
+
+
                         </tr>
 
-                    </thead>
+
+                    <?php endforeach; ?>
 
 
-                    <tbody>
-
-                        <?php foreach ($projetos as $id => $projeto): ?>
-
-                            <tr>
-
-                                <td>
-                                    <strong>
-                                        <?php echo e($projeto['nome']); ?>
-                                    </strong>
-                                </td>
-
-                                <td>
-                                    <?php echo e($projeto['curso']); ?>
-                                </td>
-
-                                <td>
-                                    <?php echo e($projeto['turma']); ?>
-                                </td>
-
-                                <td>
-                                    <?php echo e($projeto['estande']); ?>
-                                </td>
-
-                                <td>
-
-                                    <span
-                                        class="status <?php echo $projeto['status'] === 'Avaliado' ? 'ok' : 'pendente'; ?>"
-                                    >
-                                        <?php echo e($projeto['status']); ?>
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <a
-                                        class="acao"
-                                        title="Visualizar avaliação"
-                                        href="?pagina=avaliar&modo=visualizar&projeto=<?php echo $id; ?>"
-                                    >
-                                        <?php echo icone('eye'); ?>
-                                    </a>
-
-                                </td>
-
-                                <td>
-
-                                    <a
-                                        class="acao"
-                                        title="Editar avaliação"
-                                        href="?pagina=avaliar&projeto=<?php echo $id; ?>"
-                                    >
-                                        <?php echo icone('edit'); ?>
-                                    </a>
-
-                                </td>
-
-                            </tr>
-
-                        <?php endforeach; ?>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        <?php endif; ?>
-
-    </main>
+                <?php else: ?>
 
 
-    <script>
+                    <tr>
 
-        function formatarNumero(valor) {
-            return String(Math.round(Number(valor)));
+
+                        <td
+                            colspan="7"
+                            style="text-align:center; padding:25px;"
+                        >
+
+                            Nenhum projeto cadastrado.
+
+                        </td>
+
+
+                    </tr>
+
+
+                <?php endif; ?>
+
+
+            </tbody>
+
+
+        </table>
+
+
+    </div>
+
+
+<?php endif; ?>
+
+
+</main>
+
+
+<script>
+
+
+function formatarNumero(valor)
+{
+    return String(
+        Math.round(
+            Number(valor)
+        )
+    );
+}
+
+
+function atualizarNota(
+    slider,
+    textoId,
+    numeroId
+)
+{
+
+    const valor =
+        Math.round(
+            Math.max(
+                0,
+                Math.min(
+                    10,
+                    Number(slider.value) || 0
+                )
+            )
+        );
+
+
+    slider.value =
+        valor;
+
+
+    slider.style.setProperty(
+        '--valor',
+        (valor * 10) + '%'
+    );
+
+
+    const texto =
+        document.getElementById(
+            textoId
+        );
+
+
+    if (texto) {
+
+        texto.textContent =
+            formatarNumero(valor);
+    }
+
+
+    const numero =
+        document.getElementById(
+            numeroId
+        );
+
+
+    if (numero) {
+
+        numero.value =
+            valor;
+    }
+
+
+    atualizarResumo();
+
+}
+
+
+function atualizarSlider(
+    campo,
+    nome
+)
+{
+
+    let valor =
+        Math.max(
+            0,
+            Math.min(
+                10,
+                Number(campo.value) || 0
+            )
+        );
+
+
+    valor =
+        Math.round(valor);
+
+
+    campo.value =
+        valor;
+
+
+    const slider =
+        document.querySelector(
+            'input[type="range"][name="' +
+            nome +
+            '"]'
+        );
+
+
+    if (slider) {
+
+        slider.value =
+            valor;
+
+
+        slider.style.setProperty(
+            '--valor',
+            (valor * 10) + '%'
+        );
+
+
+        const texto =
+            document.getElementById(
+                'texto-' + nome
+            );
+
+
+        if (texto) {
+
+            texto.textContent =
+                formatarNumero(valor);
         }
 
+    }
 
-        function atualizarNota(slider, textoId, numeroId) {
 
-            const valor = Math.round(
-                Math.max(
-                    0,
-                    Math.min(10, Number(slider.value) || 0)
-                )
+    atualizarResumo();
+
+}
+
+
+function obterConceito(media)
+{
+
+    if (media <= 4) {
+        return 'I';
+    }
+
+    if (media <= 6) {
+        return 'R';
+    }
+
+    if (media <= 8) {
+        return 'B';
+    }
+
+    return 'MB';
+
+}
+
+
+function atualizarResumo()
+{
+
+    const sliders =
+        Array.from(
+            document.querySelectorAll(
+                '#form-avaliacao input[type="range"]'
+            )
+        );
+
+
+    const valores =
+        sliders.map(
+            slider =>
+                Number(slider.value) || 0
+        );
+
+
+    let media = 0;
+
+
+    if (valores.length > 0) {
+
+        const soma =
+            valores.reduce(
+                (total, valor) =>
+                    total + valor,
+                0
             );
+
+
+        media =
+            soma /
+            valores.length;
+    }
+
+
+    const resumo =
+        document.getElementById(
+            'nota-resumo'
+        );
+
+
+    if (resumo) {
+
+        resumo.textContent =
+            media
+                .toFixed(1)
+                .replace('.', ',');
+    }
+
+
+    const conceito =
+        document.getElementById(
+            'conceito-resumo'
+        );
+
+
+    if (conceito) {
+
+        conceito.textContent =
+            obterConceito(media);
+    }
+
+}
+
+
+// ==========================================================
+// INICIALIZAR SLIDERS
+// ==========================================================
+
+document
+    .querySelectorAll(
+        'input[type="range"]'
+    )
+    .forEach(
+        slider => {
 
             slider.style.setProperty(
                 '--valor',
-                (valor * 10) + '%'
+                (
+                    Number(slider.value) * 10
+                ) + '%'
             );
 
-            document.getElementById(textoId).textContent =
-                formatarNumero(valor);
-
-            document.getElementById(numeroId).value =
-                valor;
-
-            atualizarResumo();
         }
+    );
 
 
-        function atualizarSlider(campo, nome) {
-
-            let valor = Math.max(
-                0,
-                Math.min(10, Number(campo.value) || 0)
-            );
-
-            valor = Math.round(valor);
-
-            campo.value = valor;
-
-            const slider = document.querySelector(
-                'input[type="range"][name="' + nome + '"]'
-            );
-
-            if (slider) {
-
-                slider.value = valor;
-
-                slider.style.setProperty(
-                    '--valor',
-                    (valor * 10) + '%'
-                );
-
-                const texto = document.getElementById(
-                    'texto-' + nome
-                );
-
-                if (texto) {
-                    texto.textContent =
-                        formatarNumero(valor);
-                }
-            }
-
-            atualizarResumo();
-        }
+atualizarResumo();
 
 
-        function obterConceito(media) {
+</script>
 
-            if (media <= 4) return 'I';
-            if (media <= 6) return 'R';
-            if (media <= 8) return 'B';
-
-            return 'MB';
-        }
-
-
-        function atualizarResumo() {
-
-            const campos = [
-                'inovacao',
-                'viabilidade',
-                'impacto',
-                'apresentacao'
-            ];
-
-            const valores = campos.map(
-                campo =>
-                    Number(
-                        document.querySelector(
-                            'input[type="range"][name="' + campo + '"]'
-                        )?.value || 0
-                    )
-            );
-
-            const media =
-                valores.reduce(
-                    (total, valor) => total + valor,
-                    0
-                ) / valores.length;
-
-
-            const resumo =
-                document.getElementById('nota-resumo');
-
-            if (resumo) {
-                resumo.textContent =
-                    media.toFixed(1).replace('.', ',');
-            }
-
-
-            const conceito =
-                document.getElementById('conceito-resumo');
-
-            if (conceito) {
-                conceito.textContent =
-                    obterConceito(media);
-            }
-        }
-
-
-        document
-            .querySelectorAll('input[type="range"]')
-            .forEach(
-                slider =>
-                    slider.dispatchEvent(
-                        new Event('input')
-                    )
-            );
-
-
-        atualizarResumo();
-
-    </script>
 
 </body>
 
 </html>
-```

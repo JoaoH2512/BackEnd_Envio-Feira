@@ -22,7 +22,7 @@ if ($usuario) {
 
     if (
         $usuario['matricula'] == $matricula &&
-        $usuario['senha'] == $senha
+        password_verify($senha, $usuario['senha'])
     ) {
 
         $_SESSION['usuario_id'] = $usuario['id'];
@@ -31,7 +31,7 @@ if ($usuario) {
         $_SESSION['usuario_matricula'] = $usuario['matricula'];
         $_SESSION['tipo'] = $usuario['tipo'];
 
-        header('Location: ../PainelADM/listar.php');
+        header('Location: ../notas/notas.php');
         exit;
 
     } else {
