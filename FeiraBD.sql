@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 15/09/2026 às 20:40
+-- Tempo de geração: 15/09/2026 às 22:21
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -87,11 +87,18 @@ CREATE TABLE `avaliacao` (
 --
 
 INSERT INTO `avaliacao` (`id`, `avaliador_id`, `projeto_id`, `criterio_id`, `nota`, `status`, `observacao`) VALUES
-(21, 1, 17, 1, 9.00, '', 'Boa apresentação e domínio do conteúdo.'),
-(22, 1, 17, 2, 8.50, '', 'Boa postura durante a apresentação.'),
-(23, 1, 17, 3, 9.50, '', 'Projeto bem organizado e estruturado.'),
-(24, 1, 17, 4, 8.00, '', 'Apresentação criativa e com boas ideias.'),
-(25, 1, 17, 5, 9.00, '', 'Boa participação durante o desenvolvimento.');
+(60, 1, 18, 1, 7.00, 'Avaliado', ''),
+(61, 1, 18, 2, 4.00, 'Avaliado', ''),
+(62, 1, 18, 3, 7.00, 'Avaliado', ''),
+(63, 1, 18, 4, 5.00, 'Avaliado', ''),
+(64, 1, 18, 5, 8.00, 'Avaliado', ''),
+(65, 1, 18, 6, 1.00, 'Avaliado', ''),
+(66, 1, 17, 1, 10.00, 'Avaliado', 'Boa participação durante o desenvolvimento.'),
+(67, 1, 17, 2, 3.00, 'Avaliado', 'Boa participação durante o desenvolvimento.'),
+(68, 1, 17, 3, 4.00, 'Avaliado', 'Boa participação durante o desenvolvimento.'),
+(69, 1, 17, 4, 8.00, 'Avaliado', 'Boa participação durante o desenvolvimento.'),
+(70, 1, 17, 5, 9.00, 'Avaliado', 'Boa participação durante o desenvolvimento.'),
+(71, 1, 17, 6, 0.00, 'Avaliado', 'Boa participação durante o desenvolvimento.');
 
 -- --------------------------------------------------------
 
@@ -177,7 +184,7 @@ CREATE TABLE `professor` (
 --
 
 INSERT INTO `professor` (`id`, `nome`, `email`, `senha`, `matricula`, `tipo`, `criado_em`) VALUES
-(1, 'Amanda Chagas', 'amanda_chagas@gmail.com', '$2y$10$N4xgnjaWWFI8gwZ/Gx2qYuoqqqOk7mx35.1gw8bhB.r.TWd4lrOgy', '123456', 'coordenador', '2026-09-15 17:43:07');
+(1, 'Amanda Chagas', 'amanda_chagas@gmail.com', '$2y$10$N4xgnjaWWFI8gwZ/Gx2qYuoqqqOk7mx35.1gw8bhB.r.TWd4lrOgy', '123456', 'avaliador', '2026-09-15 17:43:07');
 
 -- --------------------------------------------------------
 
@@ -317,7 +324,7 @@ ALTER TABLE `aluno`
 -- AUTO_INCREMENT de tabela `avaliacao`
 --
 ALTER TABLE `avaliacao`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
 
 --
 -- AUTO_INCREMENT de tabela `conversas`
