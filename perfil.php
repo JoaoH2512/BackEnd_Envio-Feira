@@ -1,56 +1,31 @@
-<link rel="stylesheet" href="style.css">
-
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7a0714">
+    <title>Perfil | Feira Tecnológica</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body data-page="profile">
     <main class="portal">
-      <aside class="sidebar" aria-label="Navegação da área do professor">
-        <a class="brand-lockup" href="dashboard.php" aria-label="Feira Tecnológica — página inicial"><span class="brand-emblem">MCM</span><span class="brand-copy"><strong>Feira Tecnológica</strong><span>ETEC Maria Cristina Medeiros</span></span></a>
-        <p class="sidebar-label">Área do Professor</p>
-        <nav class="side-nav" aria-label="Navegação principal">
-          <button class="active" type="button" data-page="dashboard.php"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="M8 4v4h8V4M8 13l2 2 4-4"></path></svg>Avaliações Gerais</button>
-          <button type="button" data-page="trabalhos.php"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h7v14H4zM13 5h7v14h-7z"></path><path d="M7 9h1M7 13h1M16 9h1M16 13h1"></path></svg>Trabalhos Orientados</button>
-          <button type="button" data-page="avisos.php"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg>Avisos</button>
-          <button type="button" data-page="perfil.php"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path></svg>Perfil</button>
+      <aside class="barra-lateral" aria-label="Navegação da área do professor">
+        <a class="marca-cabecalho" href="dashboard.php" aria-label="Feira Tecnológica — página inicial"><span class="emblema-marca">MCM</span><span class="texto-marca"><strong>Feira Tecnológica</strong><span>ETEC Maria Cristina Medeiros</span></span></a>
+        <p class="rotulo-barra-lateral">Área do Professor</p>
+        <nav class="navegacao-lateral" aria-label="Navegação principal">
+          <button type="button" data-page="dashboard.php"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="M8 4v4h8V4M8 13l2 2 4-4"></path></svg>Avaliações Gerais</button>
+          <button type="button" data-page="trabalhos.php"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h7v14H4zM13 5h7v14h-7z"></path><path d="M7 9h1M7 13h1M16 9h1M16 13h1"></path></svg>Trabalhos Orientados</button>
+          <button type="button" data-page="avisos.php"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg>Avisos</button>
+          <button class="ativo" type="button" data-page="perfil.php"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path></svg>Perfil</button>
         </nav>
-        <p class="sidebar-footer">Feira Tecnológica · 2026</p>
+        <p class="rodape-barra-lateral">Feira Tecnológica · 2026</p>
       </aside>
-
-      <section class="content-column">
-        <header class="topbar">
-          <div><p class="eyebrow">PAINEL DO PROFESSOR</p><h1>Bem-vindo! Professor(a) Laura</h1><p>Confira o panorama dos projetos sob sua orientação.</p></div>
-          <button class="notification-button" type="button" data-notification="Você não possui novos avisos." aria-label="Ver avisos"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg><i class="notification-dot"></i></button>
-        </header>
-
-        <section class="metrics" aria-label="Resumo geral">
-          <article class="metric-card" style="--metric: var(--wine)"><span class="metric-line"></span><p>Projetos orientados</p><strong>4</strong><small>+2 este mês</small><span class="metric-icon"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h7v14H4zM13 5h7v14h-7z"></path></svg></span></article>
-          <article class="metric-card" style="--metric: var(--gold)"><span class="metric-line"></span><p>Avaliações pendentes</p><strong>2</strong><small>2 urgentes</small><span class="metric-icon"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="M8 4v4h8V4M8 13l2 2 4-4"></path></svg></span></article>
-          <article class="metric-card" style="--metric: var(--blue)"><span class="metric-line"></span><p>Avaliações concluídas</p><strong>2</strong><small>+1 este mês</small><span class="metric-icon"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8 7 10 4.1-2 7-5.4 7-10V6l-7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg></span></article>
-          <article class="metric-card" style="--metric: var(--green)"><span class="metric-line"></span><p>Média das notas finais</p><strong>8,85</strong><small>+0,35 este mês</small><span class="metric-icon"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 20V9l8-5 8 5v11"></path><path d="M8 20v-6h8v6M8 10h.01M12 10h.01M16 10h.01"></path></svg></span></article>
-        </section>
-
-        <section aria-labelledby="projects-title">
-          <div class="section-heading"><h2 id="projects-title">Projetos Orientados</h2><a class="text-action" href="populhotrabalhos.php">Ver todos</a></div>
-          <div class="project-list">
-            <table class="project-table">
-              <caption class="screen-reader-only">Projetos acompanhados pela professora Laura</caption>
-              <thead><tr><th>Projeto</th><th>Curso</th><th>Turma</th><th>Estande</th><th>Status</th><th>Visualização</th><th>Edição</th></tr></thead>
-              <tbody>
-                <tr><td class="project-name">Farm Bot</td><td>Informática para Internet</td><td>3º</td><td>A-01</td><td><span class="status approved">Avaliado</span></td><td><div class="row-actions"><a class="icon-button" href="popupolho.php?projeto=farm-bot" aria-label="Ver projeto Farm Bot"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></a></div></td><td><div class="row-actions"><button class="icon-button" type="button" data-page="avaliacao.php" aria-label="Editar avaliação de Farm Bot"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17Z"></path><path d="m14.5 7.5 2 2"></path></svg></button></div></td></tr>
-                <tr><td class="project-name">Eco Filter</td><td>Recursos Humanos</td><td>2º</td><td>B-03</td><td><span class="status approved">Avaliado</span></td><td><div class="row-actions"><a class="icon-button" href="popupolho.php?projeto=eco-filter" aria-label="Ver projeto Eco Filter"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></a></div></td><td><div class="row-actions"><button class="icon-button" type="button" data-page="avaliacao.php" aria-label="Editar avaliação de Eco Filter"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17Z"></path><path d="m14.5 7.5 2 2"></path></svg></button></div></td></tr>
-                <tr><td class="project-name">App Recicla</td><td>Logística</td><td>3º</td><td>B-07</td><td><span class="status pending">Pendente</span></td><td><div class="row-actions"><a class="icon-button" href="popupolho.php?projeto=app-recicla" aria-label="Ver projeto App Recicla"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></a></div></td><td><div class="row-actions"><button class="icon-button" type="button" data-page="avaliacao.php" aria-label="Editar avaliação de App Recicla"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17Z"></path><path d="m14.5 7.5 2 2"></path></svg></button></div></td></tr>
-                <tr><td class="project-name">Edu+</td><td>Administração</td><td>2º</td><td>C-02</td><td><span class="status approved">Avaliado</span></td><td><div class="row-actions"><a class="icon-button" href="popupolho.php?projeto=edu" aria-label="Ver projeto Edu+"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></a></div></td><td><div class="row-actions"><button class="icon-button" type="button" data-page="avaliacao.php" aria-label="Editar avaliação de Edu+"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17Z"></path><path d="m14.5 7.5 2 2"></path></svg></button></div></td></tr>
-                <tr><td class="project-name">Smart Horta</td><td>Informática para Internet</td><td>3º</td><td>A-02</td><td><span class="status pending">Pendente</span></td><td><div class="row-actions"><a class="icon-button" href="popupolho.php?projeto=smart-horta" aria-label="Ver projeto Smart Horta"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></a></div></td><td><div class="row-actions"><button class="icon-button" type="button" data-page="avaliacao.php" aria-label="Editar avaliação de Smart Horta"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17Z"></path><path d="m14.5 7.5 2 2"></path></svg></button></div></td></tr>
-                <tr><td class="project-name">Energia Solar</td><td>Química</td><td>2º</td><td>B-01</td><td><span class="status approved">Avaliado</span></td><td><div class="row-actions"><a class="icon-button" href="popupolho.php?projeto=energia-solar" aria-label="Ver projeto Energia Solar"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></a></div></td><td><div class="row-actions"><button class="icon-button" type="button" data-page="avaliacao.php" aria-label="Editar avaliação de Energia Solar"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17Z"></path><path d="m14.5 7.5 2 2"></path></svg></button></div></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <section class="coluna-conteudo">
+        <header class="barra-superior"><div><p class="rotulo-destaque">ÁREA DO PROFESSOR</p><h1>Meu Perfil</h1><p>Gerencie suas informações pessoais.</p></div><button class="botao-notificacao" type="button" data-notification="Sem novos avisos." aria-label="Ver avisos"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg><i class="ponto-notificacao"></i></button></header>
+        <section class="cartao-perfil"><span class="avatar-perfil">CA</span><div><h2>Prof. Carlos Almeida</h2><p><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="m4 7 8 6 8-6"></path></svg>carlos.almeida@etecmcm.sp.gov.br</p><p><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12Z"></path><circle cx="12" cy="9" r="2"></circle></svg>Orientador — ETEC Maria Cristina Medeiros</p></div></section>
+        <section class="cartao-formulario"><h3>Editar Informações</h3><form id="profile-form"><div class="grade-formulario"><div class="grupo-formulario"><label for="name">Nome completo</label><input id="name" name="name" data-profile-field value="Carlos Almeida"></div><div class="grupo-formulario"><label for="email">E-mail</label><input id="email" name="email" data-profile-field type="email" value="carlos.almeida@etecmcm.sp.gov.br"></div><div class="grupo-formulario"><label for="phone">Telefone</label><input id="phone" name="phone" data-profile-field value="(11) 99999-8888"></div></div><div class="acoes-formulario"><button class="botao-compacto" type="submit"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 3h12l2 2v16H5V3Z"></path><path d="M8 3v6h8V3M8 21v-7h8v7"></path></svg>Salvar Alterações</button><button class="botao-secundario" id="cancel-profile" type="button">Cancelar</button></div></form></section>
       </section>
-
-      <nav class="mobile-nav" aria-label="Navegação móvel">
-        <button class="active" type="button" data-page="dashboard.php"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="M8 4v4h8V4M8 13l2 2 4-4"></path></svg><span>Avaliações</span></button>
-        <button type="button" data-page="trabalhos.php"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h7v14H4zM13 5h7v14h-7z"></path></svg><span>Orientados</span></button>
-        <button type="button" data-page="perfil.php"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path></svg><span>Perfil</span></button>
-      </nav>
+      <nav class="navegacao-movel" aria-label="Navegação móvel"><button type="button" data-page="dashboard.php"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="M8 4v4h8V4M8 13l2 2 4-4"></path></svg><span>Avaliações</span></button><button type="button" data-page="trabalhos.php"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h7v14H4zM13 5h7v14h-7z"></path></svg><span>Orientados</span></button><button class="ativo" type="button" data-page="perfil.php"><svg class="icone" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path></svg><span>Perfil</span></button></nav>
     </main>
-    <script src="script.js"></script>
   </body>
 </html>

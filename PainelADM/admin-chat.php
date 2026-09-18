@@ -26,43 +26,43 @@ $csrfToken = Session::csrfToken();
 </head>
 <body>
 
-<nav class="navbar">
-<a href="admin.php" class="navbar-brand">🎓 Sistema Escolar</a>
-<div class="navbar-links">
-<a href="admin.php" class="nav-button">👨‍🏫 Professores</a>
-<a href="admin-chat.php" class="nav-button active">💬 Chat</a>
-<a href="logout.php" class="nav-button nav-danger">🚪 Sair</a>
+<nav class="barra-navegacao">
+<a href="admin.php" class="marca-navegacao">🎓 Sistema Escolar</a>
+<div class="links-navegacao">
+<a href="admin.php" class="botao-navegacao">👨‍🏫 Professores</a>
+<a href="admin-chat.php" class="botao-navegacao ativo">💬 Chat</a>
+<a href="logout.php" class="botao-navegacao navegacao-perigo">🚪 Sair</a>
 </div>
 </nav>
 
-<main class="admin-chat-page">
-<section class="admin-chat">
+<main class="pagina-chat-administrador">
+<section class="chat-administrador">
 
-<aside class="conversation-sidebar">
-<header class="conversation-header">
-<span class="eyebrow">SUPORTE</span>
+<aside class="barra-lateral-conversas">
+<header class="cabecalho-conversa">
+<span class="rotulo-destaque">SUPORTE</span>
 <h1>Conversas</h1>
 </header>
-<div id="conversation-list" class="conversation-list">
+<div id="conversation-list" class="lista-conversas">
 <?php if (!$conversas): ?>
-<div class="conversation-empty">Nenhuma conversa iniciada.</div>
+<div class="conversa-vazia">Nenhuma conversa iniciada.</div>
 <?php else: ?>
 <?php foreach ($conversas as $c): ?>
-<button type="button" class="conversation-item" data-conversa-id="<?= (int)$c['id'] ?>">
-<div class="conversation-avatar"><?= htmlspecialchars(strtoupper(substr($c['nome'],0,1)), ENT_QUOTES, 'UTF-8') ?></div>
-<div class="conversation-info">
+<button type="button" class="item-conversa" data-conversa-id="<?= (int)$c['id'] ?>">
+<div class="avatar-conversa"><?= htmlspecialchars(strtoupper(substr($c['nome'],0,1)), ENT_QUOTES, 'UTF-8') ?></div>
+<div class="informacoes-conversa">
 <strong><?= htmlspecialchars($c['nome'], ENT_QUOTES, 'UTF-8') ?></strong>
 <span><?= htmlspecialchars($c['ultima_mensagem'] ?? 'Nenhuma mensagem', ENT_QUOTES, 'UTF-8') ?></span>
 </div>
-<?php if ((int)$c['nao_lidas'] > 0): ?><span class="unread-badge"><?= (int)$c['nao_lidas'] ?></span><?php endif; ?>
+<?php if ((int)$c['nao_lidas'] > 0): ?><span class="distintivo-nao-lido"><?= (int)$c['nao_lidas'] ?></span><?php endif; ?>
 </button>
 <?php endforeach; ?>
 <?php endif; ?>
 </div>
 </aside>
 
-<section id="admin-chat-window" class="admin-chat-window" data-csrf="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-<div class="admin-chat-placeholder"><div>💬</div><h2>Selecione uma conversa</h2><p>Escolha um professor para visualizar as mensagens.</p></div>
+<section id="admin-chat-window" class="janela-chat-administrador" data-csrf="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+<div class="espaco-chat-administrador"><div>💬</div><h2>Selecione uma conversa</h2><p>Escolha um professor para visualizar as mensagens.</p></div>
 </section>
 </section>
 </main>
@@ -70,7 +70,7 @@ $csrfToken = Session::csrfToken();
 <script>
 const csrfToken = document.querySelector('#admin-chat-window').dataset.csrf;
 const chatWindow = document.querySelector('#admin-chat-window');
-const items = document.querySelectorAll('.conversation-item');
+const items = document.querySelectorAll('.item-conversa');
 let conversaAtual = null;
 
 items.forEach(item => item.addEventListener('click', () => {
@@ -79,18 +79,18 @@ items.forEach(item => item.addEventListener('click', () => {
 }));
 
 async function abrirConversa(id, item) {
-    items.forEach(i => i.classList.remove('selected'));
-    item.classList.add('selected');
+    items.forEach(i => i.classList.remove('selecionado'));
+    item.classList.add('selecionado');
 
     chatWindow.innerHTML = `
-    <header class="chat-header">
-        <div class="chat-avatar">👤</div>
+    <header class="cabecalho-chat">
+        <div class="avatar-chat">👤</div>
         <div><h1>${escapeHtml(item.querySelector('strong').textContent)}</h1><span>Conversa com o professor</span></div>
     </header>
-    <div id="admin-messages" class="chat-messages"></div>
-    <form id="admin-chat-form" class="chat-form">
+    <div id="admin-messages" class="mensagens-chat"></div>
+    <form id="admin-chat-form" class="formulario-chat">
         <input type="text" id="admin-chat-input" maxlength="2000" placeholder="Digite sua resposta..." autocomplete="off" required>
-        <button type="submit" class="chat-send">➤</button>
+        <button type="submit" class="enviar-chat">➤</button>
     </form>`;
 
     await carregarMensagensAdmin(id);
@@ -121,11 +121,11 @@ async function carregarMensagensAdmin(id) {
         data.mensagens.forEach(m => {
             const own = m.remetente_tipo === 'admin';
             const item = document.createElement('div');
-            item.className = own ? 'message message-own' : 'message message-other';
-            item.innerHTML = '<div class="message-bubble"><div class="message-text">' +
-                escapeHtml(m.mensagem) + '</div><div class="message-meta">' +
+            item.className = own ? 'mensagem mensagem-propria' : 'mensagem mensagem-outra';
+            item.innerHTML = '<div class="balao-mensagem"><div class="texto-mensagem">' +
+                escapeHtml(m.mensagem) + '</div><div class="meta-mensagem">' +
                 formatarHora(m.criado_em) +
-                (own ? '<span class="message-status">' + (m.status === 'lida' ? '✓✓' : m.status === 'recebida' ? '✓✓' : '✓') + '</span>' : '') +
+                (own ? '<span class="status-mensagem">' + (m.status === 'lida' ? '✓✓' : m.status === 'recebida' ? '✓✓' : '✓') + '</span>' : '') +
                 '</div></div>';
             box.appendChild(item);
         });

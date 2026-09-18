@@ -1,5 +1,5 @@
 <?php
-require '../conexao.php';
+require_once '../conexao.php';
 
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']); // garante que é número inteiro para segurança

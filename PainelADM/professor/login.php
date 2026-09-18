@@ -45,32 +45,32 @@ $csrfToken = Session::csrfToken();
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-<main class="auth-page">
-<section class="auth-card">
-<div class="auth-icon">🎓</div>
+<main class="pagina-acesso">
+<section class="cartao-acesso">
+<div class="icone-acesso">🎓</div>
 <h1>Sistema Escolar</h1>
 <p>Entre com seu RA e senha de professor.</p>
 
 <?php if ($erro): ?>
-<div class="alert alert-error"><?= htmlspecialchars($erro, ENT_QUOTES, 'UTF-8') ?></div>
+<div class="alerta alerta-erro"><?= htmlspecialchars($erro, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 
-<form method="POST" class="auth-form">
+<form method="POST" class="formulario-acesso">
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-<div class="form-group">
+<div class="grupo-formulario">
 <label for="ra">RA</label>
 <input type="text" id="ra" name="ra" maxlength="50" placeholder="Digite seu RA" autocomplete="username" required>
 </div>
 
-<div class="form-group">
+<div class="grupo-formulario">
 <label for="senha">Senha</label>
 <input type="password" id="senha" name="senha" placeholder="Digite sua senha" autocomplete="current-password" required>
 </div>
 
-<button type="submit" class="button button-primary button-full">Entrar</button>
+<button type="submit" class="botao botao-principal botao-completo">Entrar</button>
 </form>
 
-<div class="auth-footer">
+<div class="rodape-acesso">
 <a href="../admin.php">Acesso administrativo</a>
 </div>
 </section>

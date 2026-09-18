@@ -32,37 +32,37 @@ $csrfToken = Session::csrfToken();
 </head>
 <body>
 
-<nav class="navbar">
-<a href="dashboard.php" class="navbar-brand">🎓 Sistema Escolar</a>
-<div class="navbar-links">
-<a href="dashboard.php" class="nav-button">🏠 Início</a>
-<a href="chat.php" class="nav-button active">💬 Fale conosco</a>
-<div class="user-badge">👤 <?= htmlspecialchars($professor['nome'], ENT_QUOTES, 'UTF-8') ?><span>PROFESSOR</span></div>
-<a href="logout.php" class="nav-button nav-danger">🚪 Sair</a>
+<nav class="barra-navegacao">
+<a href="dashboard.php" class="marca-navegacao">🎓 Sistema Escolar</a>
+<div class="links-navegacao">
+<a href="dashboard.php" class="botao-navegacao">🏠 Início</a>
+<a href="chat.php" class="botao-navegacao ativo">💬 Fale conosco</a>
+<div class="distintivo-usuario">👤 <?= htmlspecialchars($professor['nome'], ENT_QUOTES, 'UTF-8') ?><span>PROFESSOR</span></div>
+<a href="logout.php" class="botao-navegacao navegacao-perigo">🚪 Sair</a>
 </div>
 </nav>
 
-<main class="chat-page">
-<section class="chat-window" data-conversa-id="<?= $conversaId ?? '' ?>" data-csrf="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+<main class="pagina-chat">
+<section class="janela-chat" data-conversa-id="<?= $conversaId ?? '' ?>" data-csrf="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 
-<header class="chat-header">
-<div class="chat-avatar">ADM</div>
+<header class="cabecalho-chat">
+<div class="avatar-chat">ADM</div>
 <div><h1>Fale conosco</h1><span>Converse diretamente com a administração</span></div>
 </header>
 
-<div id="chat-messages" class="chat-messages">
-<div class="chat-empty"><div>💬</div><h2>Como podemos ajudar?</h2><p>Envie uma mensagem para a administração.</p></div>
+<div id="mensagens-chat" class="mensagens-chat">
+<div class="chat-vazio"><div>💬</div><h2>Como podemos ajudar?</h2><p>Envie uma mensagem para a administração.</p></div>
 </div>
 
-<form id="chat-form" class="chat-form">
+<form id="formulario-chat" class="formulario-chat">
 <input type="text" id="chat-input" maxlength="2000" placeholder="Digite sua mensagem..." autocomplete="off" required>
-<button type="submit" class="chat-send">➤</button>
+<button type="submit" class="enviar-chat">➤</button>
 </form>
 </section>
 </main>
 
 <script>
-const win = document.querySelector('.chat-window');
+const win = document.querySelector('.janela-chat');
 const messages = document.querySelector('#chat-messages');
 const form = document.querySelector('#chat-form');
 const input = document.querySelector('#chat-input');
@@ -92,22 +92,22 @@ async function carregarMensagens() {
         messages.innerHTML = '';
 
         if (!data.mensagens.length) {
-            messages.innerHTML = '<div class="chat-empty"><div>💬</div><h2>Como podemos ajudar?</h2><p>Envie uma mensagem para a administração.</p></div>';
+            messages.innerHTML = '<div class="chat-vazio"><div>💬</div><h2>Como podemos ajudar?</h2><p>Envie uma mensagem para a administração.</p></div>';
             return;
         }
 
         data.mensagens.forEach(m => {
             const own = m.remetente_tipo === 'professor';
             const item = document.createElement('div');
-            item.className = own ? 'message message-own' : 'message message-other';
+            item.className = own ? 'mensagem mensagem-propria' : 'mensagem mensagem-outra';
 
-            const status = own ? '<span class="message-status">' +
+            const status = own ? '<span class="status-mensagem">' +
                 (m.status === 'lida' ? '✓✓' : m.status === 'recebida' ? '✓✓' : '✓') +
                 '</span>' : '';
 
-            item.innerHTML = '<div class="message-bubble"><div class="message-text">' +
+            item.innerHTML = '<div class="balao-mensagem"><div class="texto-mensagem">' +
                 escapeHtml(m.mensagem) +
-                '</div><div class="message-meta">' +
+                '</div><div class="meta-mensagem">' +
                 formatarHora(m.criado_em) + status +
                 '</div></div>';
 

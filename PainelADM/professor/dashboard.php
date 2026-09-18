@@ -27,30 +27,30 @@ $professor = $auth->professor();
 </head>
 <body>
 
-<nav class="navbar">
-<a href="dashboard.php" class="navbar-brand">🎓 Sistema Escolar</a>
-<div class="navbar-links">
-<a href="dashboard.php" class="nav-button active">🏠 Início</a>
-<a href="chat.php" class="nav-button">💬 Fale conosco</a>
-<div class="user-badge">👤 <?= htmlspecialchars($professor['nome'], ENT_QUOTES, 'UTF-8') ?><span>PROFESSOR</span></div>
-<a href="logout.php" class="nav-button nav-danger">🚪 Sair</a>
+<nav class="barra-navegacao">
+<a href="dashboard.php" class="marca-navegacao">🎓 Sistema Escolar</a>
+<div class="links-navegacao">
+<a href="dashboard.php" class="botao-navegacao ativo">🏠 Início</a>
+<a href="chat.php" class="botao-navegacao">💬 Fale conosco</a>
+<div class="distintivo-usuario">👤 <?= htmlspecialchars($professor['nome'], ENT_QUOTES, 'UTF-8') ?><span>PROFESSOR</span></div>
+<a href="logout.php" class="botao-navegacao navegacao-perigo">🚪 Sair</a>
 </div>
 </nav>
 
-<main class="page-container">
-<section class="welcome-card">
-<span class="eyebrow">ÁREA DO PROFESSOR</span>
+<main class="container-pagina">
+<section class="cartao-boas-vindas">
+<span class="rotulo-destaque">ÁREA DO PROFESSOR</span>
 <h1>Bem-vindo, <?= htmlspecialchars($professor['nome'], ENT_QUOTES, 'UTF-8') ?>!</h1>
 <p>Aqui estão suas informações cadastradas. Pelo botão “Fale conosco”, você pode conversar diretamente com a administração.</p>
 
-<div class="profile-grid">
-<div class="profile-card"><span>Nome</span><strong><?= htmlspecialchars($professor['nome'], ENT_QUOTES, 'UTF-8') ?></strong></div>
-<div class="profile-card"><span>RA</span><strong><?= htmlspecialchars($professor['ra'], ENT_QUOTES, 'UTF-8') ?></strong></div>
-<div class="profile-card"><span>E-mail</span><strong><?= htmlspecialchars($professor['email'], ENT_QUOTES, 'UTF-8') ?></strong></div>
-<div class="profile-card"><span>Tipo</span><strong><?= htmlspecialchars(ucfirst($professor['tipo']), ENT_QUOTES, 'UTF-8') ?></strong></div>
+<div class="grade-perfil">
+<div class="cartao-perfil"><span>Nome</span><strong><?= htmlspecialchars($professor['nome'], ENT_QUOTES, 'UTF-8') ?></strong></div>
+<div class="cartao-perfil"><span>RA</span><strong><?= htmlspecialchars($professor['ra'], ENT_QUOTES, 'UTF-8') ?></strong></div>
+<div class="cartao-perfil"><span>E-mail</span><strong><?= htmlspecialchars($professor['email'], ENT_QUOTES, 'UTF-8') ?></strong></div>
+<div class="cartao-perfil"><span>Tipo</span><strong><?= htmlspecialchars(ucfirst($professor['tipo']), ENT_QUOTES, 'UTF-8') ?></strong></div>
 </div>
 
-<a href="chat.php" class="button button-primary">💬 Fale conosco</a>
+<a href="chat.php" class="botao botao-principal">💬 Fale conosco</a>
 </section>
 </main>
 </body>

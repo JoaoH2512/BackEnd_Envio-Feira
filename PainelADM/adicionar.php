@@ -4,8 +4,8 @@
     Cadastrar professor
 </button>
 
-<div id="modalProfessor" class="modal">
-    <div class="modal-conteudo">
+<div id="modalProfessor" class="janela">
+    <div class="conteudo-modal">
 
         <button type="button" id="btnFecharModal">X</button>
 

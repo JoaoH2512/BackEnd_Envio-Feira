@@ -1,4 +1,4 @@
-.modal {
+.janela {
     display: none;
 
     position: fixed;
@@ -10,11 +10,11 @@
     align-items: center;
 }
 
-.modal.ativo {
+.janela.ativo {
     display: flex;
 }
 
-.modal-conteudo {
+.janela-conteudo {
     background: white;
     padding: 30px;
     border-radius: 10px;
@@ -50,7 +50,7 @@
    MODAL
 ========================= */
 
-.modal {
+.janela {
     display: none;
 
     position: fixed;
@@ -64,7 +64,7 @@
     z-index: 1000;
 }
 
-.modal.ativo {
+.janela.ativo {
     display: flex;
 }
 
@@ -73,7 +73,7 @@
    CONTEÚDO DO MODAL
 ========================= */
 
-.modal-conteudo {
+.janela-conteudo {
     position: relative;
 
     width: 100%;
@@ -88,7 +88,7 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.modal-conteudo h2 {
+.janela-conteudo h2 {
     margin: 0 0 25px;
 
     font-size: 22px;
@@ -131,14 +131,14 @@
    FORMULÁRIO
 ========================= */
 
-.modal-conteudo form {
+.janela-conteudo form {
     display: flex;
     flex-direction: column;
 
     gap: 8px;
 }
 
-.modal-conteudo label {
+.janela-conteudo label {
     margin-top: 10px;
 
     font-size: 14px;
@@ -147,7 +147,7 @@
     color: #333;
 }
 
-.modal-conteudo input {
+.janela-conteudo input {
     width: 100%;
     box-sizing: border-box;
 
@@ -163,7 +163,7 @@
     transition: border-color 0.2s;
 }
 
-.modal-conteudo input:focus {
+.janela-conteudo input:focus {
     border-color: #2563eb;
 }
 
@@ -172,7 +172,7 @@
    BOTÃO CADASTRAR
 ========================= */
 
-.modal-conteudo form button[type="submit"] {
+.janela-conteudo form button[type="submit"] {
     margin-top: 20px;
 
     padding: 11px;
@@ -191,6 +191,6 @@
     transition: background-color 0.2s;
 }
 
-.modal-conteudo form button[type="submit"]:hover {
+.janela-conteudo form button[type="submit"]:hover {
     background-color: #1d4ed8;
-}
+}.conteudo-modal{padding:15px}
